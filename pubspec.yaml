@@ -1,0 +1,36 @@
+name: ligeirinho_food
+description: Ligeirinho Food - App de delivery para instituições.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # HTTP Client
+  dio: ^5.4.0
+
+  # Navigation
+  go_router: ^13.0.0
+
+  # State Management
+  flutter_bloc: ^8.1.4
+  equatable: ^2.0.5
+
+  # Dependency Injection
+  get_it: ^7.6.7
+
+  # UI
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
