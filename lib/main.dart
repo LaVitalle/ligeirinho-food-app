@@ -5,7 +5,7 @@ import 'core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initDependencies();
+  await initializeDependencies();
   runApp(const LigeirinhoFoodApp());
 }
 
