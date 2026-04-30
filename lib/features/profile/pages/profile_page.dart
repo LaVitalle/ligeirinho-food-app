@@ -1,19 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../core/di/injection_container.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/custom_button.dart';
+import '../../auth/bloc/auth_bloc.dart';
+import '../../auth/models/user_model.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
-  // Temporary placeholder user data (to be replaced with real data from JWT/API)
-  static const String _name = 'Nome do Usuário';
-  static const String _email = 'usuario@email.com';
-  static const String _institution = 'Biopark Educação';
-  static const String _role = 'Cliente';
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
 
-  void _logout(BuildContext context) {
-    // TODO: clear JWT and navigate to login
+class _ProfilePageState extends State<ProfilePage> {
+  UserModel? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    final user = await sl<AuthBloc>().getCurrentUser();
+    if (!mounted) return;
+    setState(() => _user = user);
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    await sl<AuthBloc>().logout();
     context.go('/login');
   }
 
@@ -45,7 +62,7 @@ class ProfilePage extends StatelessWidget {
               child: CustomButton(
                 label: 'SAIR',
                 variant: CustomButtonVariant.outline,
-                onPressed: () => _logout(context),
+                onPressed: () async => _logout(context),
               ),
             ),
             const SizedBox(height: 32),
@@ -104,7 +121,7 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            _name,
+            _user?.fullName ?? 'Nome do Usuário',
             style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -119,7 +136,7 @@ class ProfilePage extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              _role,
+              _user?.role ?? 'Cliente',
               style: const TextStyle(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
@@ -153,13 +170,29 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildInfoRow(Icons.person_outline, 'Nome', _name),
+          _buildInfoRow(
+            Icons.person_outline,
+            'Nome',
+            _user?.fullName ?? 'Nome do Usuário',
+          ),
           const Divider(height: 24),
-          _buildInfoRow(Icons.email_outlined, 'E-mail', _email),
+          _buildInfoRow(
+            Icons.email_outlined,
+            'E-mail',
+            _user?.email ?? 'usuario@email.com',
+          ),
           const Divider(height: 24),
-          _buildInfoRow(Icons.business_outlined, 'Instituição', _institution),
+          _buildInfoRow(
+            Icons.business_outlined,
+            'Instituição',
+            _user?.institutionId ?? 'Não informado',
+          ),
           const Divider(height: 24),
-          _buildInfoRow(Icons.badge_outlined, 'Tipo de conta', _role),
+          _buildInfoRow(
+            Icons.badge_outlined,
+            'Tipo de conta',
+            _user?.role ?? 'Cliente',
+          ),
         ],
       ),
     );

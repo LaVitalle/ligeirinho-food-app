@@ -22,6 +22,9 @@ dependencies:
   # Dependency Injection
   get_it: ^7.6.7
 
+  # Local Storage
+  shared_preferences: ^2.2.3
+
   # UI
   cupertino_icons: ^1.0.2
 

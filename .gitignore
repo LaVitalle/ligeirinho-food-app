@@ -7,6 +7,8 @@
 .buildlog/
 .history
 
+# Ignore generated Flutter platform folders (keep these local only)
+linux/
 
 
 # Flutter repo-specific
@@ -28,7 +30,7 @@
 version
 analysis_benchmark.json
 /docs
-
+/linux
 # packages file containing multi-root paths
 .packages.generated
 

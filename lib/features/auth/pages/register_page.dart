@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../core/di/injection_container.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
+import '../models/auth_requests.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -18,7 +25,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _institutionCodeController = TextEditingController();
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -30,30 +36,50 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      // TODO: implement registration logic
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) setState(() => _isLoading = false);
-      });
-    }
+  void _submit(BuildContext context) {
+    if (_formKey.currentState?.validate() != true) return;
+
+    context.read<AuthBloc>().add(
+          RegisterSubmitted(
+            request: RegisterRequestModel(
+              fullName: _nameController.text.trim(),
+              email: _emailController.text.trim(),
+              password: _passwordController.text,
+              role: 'CUSTOMER',
+            ),
+          ),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
+    return BlocProvider(
+      create: (_) => sl<AuthBloc>(),
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.backgroundGradient,
+          ),
+          child: SafeArea(
+            child: BlocConsumer<AuthBloc, AuthState>(
+              listener: (context, state) {
+                if (state is Authenticated) {
+                  context.go('/profile');
+                } else if (state is AuthFailure) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.error)),
+                  );
+                }
+              },
+              builder: (context, state) {
+                final isLoading = state is AuthLoading;
+
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
                   Container(
                     width: 80,
                     height: 80,
@@ -177,8 +203,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 24),
                         CustomButton(
                           label: 'CADASTRAR',
-                          onPressed: _submit,
-                          isLoading: _isLoading,
+                          onPressed: isLoading ? null : () => _submit(context),
+                          isLoading: isLoading,
                         ),
                         const SizedBox(height: 16),
                         Center(
@@ -205,8 +231,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                ],
-              ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ),

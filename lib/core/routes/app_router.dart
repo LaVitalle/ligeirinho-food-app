@@ -4,7 +4,10 @@ import '../../features/auth/pages/splash_page.dart';
 import '../../features/auth/pages/login_page.dart';
 import '../../features/auth/pages/register_page.dart';
 import '../../features/auth/pages/forgot_password_page.dart';
+import '../../features/cart/pages/cart_page.dart';
+import '../../features/orders/pages/orders_page.dart';
 import '../../features/profile/pages/profile_page.dart';
+import '../../features/stores/pages/stores_page.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
@@ -33,6 +36,19 @@ final GoRouter appRouter = GoRouter(
       path: '/profile',
       builder: (BuildContext context, GoRouterState state) =>
           const ProfilePage(),
+    ),
+    GoRoute(
+      path: '/stores',
+      builder: (BuildContext context, GoRouterState state) =>
+          const StoresPage(),
+    ),
+    GoRoute(
+      path: '/cart',
+      builder: (BuildContext context, GoRouterState state) => const CartPage(),
+    ),
+    GoRoute(
+      path: '/orders',
+      builder: (BuildContext context, GoRouterState state) => const OrdersPage(),
     ),
   ],
 );
