@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
-import 'core/di/injection_container.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/routes/app_router.dart';
 import 'core/theme/app_theme.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initDependencies();
-  runApp(const LigeirinhoFoodApp());
+void main() {
+  runApp(const ProviderScope(child: LigeirinhoApp()));
 }
 
-class LigeirinhoFoodApp extends StatelessWidget {
-  const LigeirinhoFoodApp({super.key});
+class LigeirinhoApp extends ConsumerWidget {
+  const LigeirinhoApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
     return MaterialApp.router(
       title: 'Ligeirinho Food',
-      debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      routerConfig: appRouter,
+      routerConfig: router,
+      debugShowCheckedModeBanner: false,
     );
   }
 }
