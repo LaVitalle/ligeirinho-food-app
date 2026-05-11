@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/mock/mock_orders.dart';
-import '../../../data/models/order_model.dart';
 
 class OrdersPanelScreen extends StatefulWidget {
   const OrdersPanelScreen({super.key});
@@ -65,8 +63,8 @@ class _OrdersPanelScreenState extends State<OrdersPanelScreen>
             ),
 
             // Métricas
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Row(
                 children: [
                   _MetricCard(
@@ -76,7 +74,7 @@ class _OrdersPanelScreenState extends State<OrdersPanelScreen>
                     icon: Icons.receipt_long,
                     color: AppColors.primary,
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   _MetricCard(
                     title: 'VENDAS HOJE',
                     value: 'R\$ 450',
@@ -254,8 +252,8 @@ class _VendorOrderCard extends StatelessWidget {
                   color: AppColors.primary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text('NOVO',
-                    style: const TextStyle(
+                child: const Text('NOVO',
+                    style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: AppColors.primary)),

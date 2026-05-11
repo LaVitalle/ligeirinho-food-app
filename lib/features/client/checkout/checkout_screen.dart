@@ -165,9 +165,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         const Divider(height: 1),
 
                         // Horário
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-                          child: const Text('AGEND RETIRADA',
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(14, 12, 14, 4),
+                          child: Text('AGEND RETIRADA',
                               style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
@@ -216,9 +216,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         ),
 
                         // Pagamento
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-                          child: const Text('FORMA DE PAGAMENTO',
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(14, 12, 14, 4),
+                          child: Text('FORMA DE PAGAMENTO',
                               style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,

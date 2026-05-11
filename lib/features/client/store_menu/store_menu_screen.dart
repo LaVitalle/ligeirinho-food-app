@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/product_card.dart';
 import '../../../data/mock/mock_data.dart';
-import '../../../data/models/store_model.dart';
 import '../cart/cart_provider.dart';
 
 class StoreMenuScreen extends ConsumerStatefulWidget {

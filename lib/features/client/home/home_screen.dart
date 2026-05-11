@@ -6,7 +6,6 @@ import '../../../core/widgets/product_card.dart';
 import '../../../data/mock/mock_data.dart';
 import '../../../features/auth/auth_provider.dart';
 import '../cart/cart_provider.dart';
-import '../product_detail/product_detail_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -53,10 +52,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: const Icon(Icons.person, color: AppColors.primary, size: 22),
                     ),
                     const SizedBox(width: 10),
-                    Expanded(
+                    const Expanded(
                       child: Text(
                         'Ligeirinho Food',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontWeight: FontWeight.w700, fontSize: 16,
                             color: AppColors.textDark),
                       ),
@@ -220,10 +219,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
 
             // Destaques da Galera
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                child: const Text('Destaques da Galera',
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
+                child: Text('Destaques da Galera',
                     style: TextStyle(
                         fontSize: 17, fontWeight: FontWeight.w800,
                         color: AppColors.textDark)),

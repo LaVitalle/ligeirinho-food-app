@@ -38,7 +38,7 @@ class ReportsScreen extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Cards de métricas
-              Row(
+              const Row(
                 children: [
                   Expanded(
                     child: _MetricBig(
@@ -49,14 +49,14 @@ class ReportsScreen extends StatelessWidget {
                       color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: _MetricBig(
                       icon: Icons.shopping_bag_outlined,
                       label: 'TOTAL PEDIDOS',
                       value: '342',
                       change: '+8,2%',
-                      color: const Color(0xFF2196F3),
+                      color: Color(0xFF2196F3),
                     ),
                   ),
                 ],
@@ -112,7 +112,7 @@ class ReportsScreen extends StatelessWidget {
                           gridData: FlGridData(
                             show: true,
                             drawVerticalLine: false,
-                            getDrawingHorizontalLine: (value) => FlLine(
+                            getDrawingHorizontalLine: (value) => const FlLine(
                               color: AppColors.divider,
                               strokeWidth: 1,
                             ),
@@ -196,7 +196,7 @@ class ReportsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
 
-              _TopProduct(
+              const _TopProduct(
                 name: 'Hambúrguer Gourmet',
                 info: '124 vendidos esta mês',
                 value: 'R\$ 4.340',
@@ -204,7 +204,7 @@ class ReportsScreen extends StatelessWidget {
                 positive: true,
               ),
               const SizedBox(height: 10),
-              _TopProduct(
+              const _TopProduct(
                 name: 'Café Latte',
                 info: '86 vendidos esta mês',
                 value: 'R\$ 1.068',

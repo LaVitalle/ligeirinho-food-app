@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/mock/mock_orders.dart';
-import '../../../data/models/order_model.dart';
 
 final _currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 final _dateFmt = DateFormat('dd/MM - HH:mm');
@@ -62,9 +61,9 @@ class _OrdersScreenState extends State<OrdersScreen>
             const SizedBox(height: 16),
 
             // Pedidos em Aberto
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Text('Pedidos em Aberto',
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Text('Pedidos em Aberto',
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -77,9 +76,9 @@ class _OrdersScreenState extends State<OrdersScreen>
             const SizedBox(height: 20),
 
             // Histórico
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Text('Histórico de Pedidos',
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Text('Histórico de Pedidos',
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,

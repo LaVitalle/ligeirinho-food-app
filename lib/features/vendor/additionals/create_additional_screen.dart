@@ -69,7 +69,7 @@ class _CreateAdditionalScreenState extends State<CreateAdditionalScreen> {
                       _label('Unidade'),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _unit,
+                        initialValue: _unit,
                         items: ['Unitário', 'Gramas', 'ml']
                             .map((u) => DropdownMenuItem(
                                 value: u, child: Text(u)))

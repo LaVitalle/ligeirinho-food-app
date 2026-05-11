@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/mock/mock_data.dart';
-import '../../../data/models/product_model.dart';
 
 final _currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 
@@ -48,11 +47,11 @@ class _ProductsScreenState extends State<ProductsScreen>
         child: Column(
           children: [
             // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text('Produtos',
                         style: TextStyle(
                             fontSize: 22,
@@ -62,7 +61,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                   CircleAvatar(
                     radius: 20,
                     backgroundColor: AppColors.surface,
-                    child: const Icon(Icons.person, color: AppColors.textLight),
+                    child: Icon(Icons.person, color: AppColors.textLight),
                   ),
                 ],
               ),
@@ -234,7 +233,7 @@ class _ProductsScreenState extends State<ProductsScreen>
                                     value: _active[key] ?? a.isActive,
                                     onChanged: (v) =>
                                         setState(() => _active[key] = v),
-                                    activeColor: AppColors.primary,
+                                    activeThumbColor: AppColors.primary,
                                   ),
                                 ],
                               ),
@@ -341,7 +340,7 @@ class _ProductListItem extends StatelessWidget {
             Switch(
               value: active,
               onChanged: onToggle,
-              activeColor: AppColors.primary,
+              activeThumbColor: AppColors.primary,
             ),
           ],
         ),

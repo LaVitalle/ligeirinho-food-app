@@ -82,10 +82,10 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
             Stack(
               alignment: Alignment.bottomRight,
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 48,
                   backgroundColor: AppColors.surface,
-                  child: const Icon(Icons.person, size: 52, color: AppColors.textLight),
+                  child: Icon(Icons.person, size: 52, color: AppColors.textLight),
                 ),
                 Container(
                   width: 30,
@@ -117,8 +117,8 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
             TextFormField(
               controller: _emailCtrl,
               keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.email_outlined,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.email_outlined,
                     color: AppColors.textLight, size: 20),
               ),
             ),
@@ -128,8 +128,8 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _regCtrl,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.badge_outlined,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.badge_outlined,
                     color: AppColors.textLight, size: 20),
               ),
             ),
@@ -139,8 +139,8 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _instCtrl,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.school_outlined,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.school_outlined,
                     color: AppColors.textLight, size: 20),
               ),
             ),

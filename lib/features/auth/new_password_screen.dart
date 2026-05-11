@@ -24,7 +24,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
           icon: const Icon(Icons.arrow_back_ios, size: 20),
           onPressed: () => context.pop(),
         ),
-        title: Text('Ligeirinho Food',
+        title: const Text('Ligeirinho Food',
             style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
         elevation: 0,
       ),

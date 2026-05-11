@@ -52,13 +52,13 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
                       color: AppColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.store,
+                        Icon(Icons.store,
                             color: AppColors.primary, size: 16),
-                        const SizedBox(width: 6),
-                        const Text('Ligeirinho Food',
+                        SizedBox(width: 6),
+                        Text('Ligeirinho Food',
                             style: TextStyle(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w700,
@@ -74,10 +74,10 @@ class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen> {
               Stack(
                 alignment: Alignment.bottomRight,
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 52,
                     backgroundColor: AppColors.surface,
-                    child: const Icon(Icons.store,
+                    child: Icon(Icons.store,
                         size: 52, color: AppColors.textLight),
                   ),
                   Container(

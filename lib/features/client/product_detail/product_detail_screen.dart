@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/mock/mock_data.dart';
 import '../../../data/models/cart_model.dart';
-import '../../../data/models/product_model.dart';
 import '../cart/cart_provider.dart';
 
 final _currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
@@ -156,16 +155,16 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         // Adicionais
                         if (product.additionals.isNotEmpty) ...[
                           const SizedBox(height: 24),
-                          Row(
+                          const Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Adicionais',
+                              Text('Adicionais',
                                   style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.textDark)),
                               Text('OPCIONAL',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 12,
                                       color: AppColors.textLight,
                                       fontWeight: FontWeight.w600)),
@@ -225,15 +224,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         // Remover ingredientes
                         if (product.removableIngredients.isNotEmpty) ...[
                           const SizedBox(height: 16),
-                          Row(
+                          const Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Remover Ingredientes',
+                              Text('Remover Ingredientes',
                                   style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.textDark)),
-                              const Text('Remova até você!',
+                              Text('Remova até você!',
                                   style: TextStyle(
                                       fontSize: 11, color: AppColors.textLight)),
                             ],

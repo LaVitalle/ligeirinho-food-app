@@ -1,4 +1,3 @@
-import '../models/additional_model_export.dart';
 import '../models/product_model.dart';
 import '../models/store_model.dart';
 
@@ -104,7 +103,7 @@ final List<ProductModel> mockProducts = [
     price: 45.00,
     additionals: [mockAdditionals[0], mockAdditionals[1]],
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p3',
     storeId: 's1',
     name: 'Pizza Brotinho',
@@ -112,42 +111,42 @@ final List<ProductModel> mockProducts = [
     price: 18.50,
     badge: '',
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p4',
     storeId: 's5',
     name: 'Frapê Gelado',
     description: 'Café gelado com creme e calda de chocolate',
     price: 14.00,
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p5',
     storeId: 's6',
     name: 'Copo de Coxinha',
     description: 'Mini coxinhas de frango com catupiry (10 unidades)',
     price: 19.00,
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p6',
     storeId: 's1',
     name: 'Coxinha de Frango',
     description: 'Coxinha tradicional com creme',
     price: 8.00,
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p7',
     storeId: 's1',
     name: 'Pão de Queijo (6 und)',
     description: 'Pão de queijo fresquinho saído do forno com geleia premium',
     price: 12.00,
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p8',
     storeId: 's1',
     name: 'X-Salada Especial',
     description: 'Hambúrguer 180g, alface, tomate e 3 queijos',
     price: 24.90,
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p9',
     storeId: 's1',
     name: 'Suco de Laranja 400ml',
@@ -163,49 +162,49 @@ final List<ProductModel> mockProducts = [
     additionals: [mockAdditionals[0], mockAdditionals[1]],
     removableIngredients: ['Cebola', 'Picles'],
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p11',
     storeId: 's2',
     name: 'Cheese Burger Clássico',
     description: 'Hambúrguer artesanal com queijo',
     price: 28.90,
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p12',
     storeId: 's2',
     name: 'Batata Frita G',
     description: 'Batata crocante porção grande',
     price: 16.00,
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p13',
     storeId: 's1',
     name: 'Lasanha Bolonhesa',
     description: 'Lasanha com molho bolonhesa e queijo gratinado',
     price: 34.00,
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p14',
     storeId: 's2',
     name: 'Hambúrguer Artesanal',
     description: 'Pão brioche, blend artesanal e molho especial',
     price: 25.90,
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p15',
     storeId: 's1',
     name: 'Suco de Laranja 300ml',
     description: 'Natural espremido na hora',
     price: 12.00,
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p16',
     storeId: 's6',
     name: 'Pastel de Carne G',
     description: 'Pastel crocante com recheio de carne',
     price: 15.00,
   ),
-  ProductModel(
+  const ProductModel(
     id: 'p17',
     storeId: 's2',
     name: 'Marmita Fit G',

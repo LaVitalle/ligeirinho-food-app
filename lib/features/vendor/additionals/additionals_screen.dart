@@ -68,7 +68,7 @@ class AdditionalsScreen extends StatelessWidget {
                 Switch(
                   value: a.isActive,
                   onChanged: (_) {},
-                  activeColor: AppColors.primary,
+                  activeThumbColor: AppColors.primary,
                 ),
               ],
             ),

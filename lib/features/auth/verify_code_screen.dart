@@ -23,7 +23,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
           icon: const Icon(Icons.arrow_back_ios, size: 20),
           onPressed: () => context.pop(),
         ),
-        title: Text('Ligeirinho Food',
+        title: const Text('Ligeirinho Food',
             style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
         elevation: 0,
       ),
@@ -133,8 +133,12 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
   @override
   void dispose() {
-    for (final c in _ctrs) c.dispose();
-    for (final n in _nodes) n.dispose();
+    for (final c in _ctrs) {
+      c.dispose();
+    }
+    for (final n in _nodes) {
+      n.dispose();
+    }
     super.dispose();
   }
 }

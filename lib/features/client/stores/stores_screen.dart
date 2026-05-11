@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/mock/mock_data.dart';
-import '../../../data/models/store_model.dart';
 
 class StoresScreen extends StatefulWidget {
   const StoresScreen({super.key});

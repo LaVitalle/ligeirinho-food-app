@@ -14,29 +14,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _page = 0;
 
   final _slides = [
-    _OnboardingSlide(
+    const _OnboardingSlide(
       title: 'Peça sem filas',
       subtitle:
           'Com o Ligeirinho, seu pedido fica pronto em um piscar de olhos.',
       illustration: Icons.shopping_bag_outlined,
-      bgColor: const Color(0xFFFFF3E0),
-      iconColor: const Color(0xFFF5820D),
+      bgColor: Color(0xFFFFF3E0),
+      iconColor: Color(0xFFF5820D),
     ),
-    _OnboardingSlide(
+    const _OnboardingSlide(
       title: 'RETIRADA\nAGENDADA',
       subtitle:
           'Otimize seu tempo! Escolha o horário ideal para retirar seu pedido.',
       illustration: Icons.schedule_outlined,
-      bgColor: const Color(0xFFFFF8F0),
-      iconColor: const Color(0xFFF5820D),
+      bgColor: Color(0xFFFFF8F0),
+      iconColor: Color(0xFFF5820D),
     ),
-    _OnboardingSlide(
+    const _OnboardingSlide(
       title: 'Hora de Saborear!',
       subtitle:
           'Seu pedido pronto em um piscar de olhos, rápido como o Ligeirinho.',
       illustration: Icons.restaurant_outlined,
-      bgColor: const Color(0xFFFFF3E0),
-      iconColor: const Color(0xFFF5820D),
+      bgColor: Color(0xFFFFF3E0),
+      iconColor: Color(0xFFF5820D),
       isLast: true,
     ),
   ];
