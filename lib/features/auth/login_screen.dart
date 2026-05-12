@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/user_model.dart';
 import 'auth_provider.dart';
+import 'auth_service.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -19,20 +20,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   UserRole _role = UserRole.client;
 
   void _login() {
+    _performLogin();
+  }
+
+  bool _loading = false;
+
+  Future<void> _performLogin() async {
     final email = _emailCtrl.text.trim();
-    final user = UserModel(
-      id: 'u1',
-      name: email.isNotEmpty ? email.split('@').first : 'Usuário',
-      email: email.isNotEmpty ? email : 'usuario@email.com',
-      registration: '4202345091',
-      institution: 'Universidade Federal',
-      role: _role,
-    );
-    ref.read(authProvider.notifier).login(user);
-    if (_role == UserRole.client) {
-      context.go('/home');
-    } else {
-      context.go('/vendor/orders');
+    final pass = _passCtrl.text;
+    if (email.isEmpty || pass.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha email e senha')),
+      );
+      return;
+    }
+
+    setState(() => _loading = true);
+    final service = AuthService();
+    try {
+      final user = await service.login(email, pass);
+      ref.read(authProvider.notifier).login(user);
+      if (user.role == UserRole.client) {
+        context.go('/home');
+      } else {
+        context.go('/vendor/orders');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -163,7 +181,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     width: double.infinity,
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: _login,
+                      onPressed: _loading ? null : _login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFE8820A),
                         foregroundColor: Colors.white,
@@ -171,12 +189,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             borderRadius: BorderRadius.circular(30)),
                         elevation: 4,
                       ),
-                      child: const Text('Entrar',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 17,
-                              letterSpacing: 1)),
+                      child: _loading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text('Entrar',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 17,
+                                  letterSpacing: 1)),
                     ),
                   ),
                   const SizedBox(height: 14),
