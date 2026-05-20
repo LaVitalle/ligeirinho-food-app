@@ -25,8 +25,6 @@ import '../../features/vendor/additionals/additionals_screen.dart';
 import '../../features/vendor/additionals/create_additional_screen.dart';
 import '../../features/vendor/reports/reports_screen.dart';
 import '../../features/vendor/profile/vendor_profile_screen.dart';
-import '../../data/models/product_model.dart';
-import '../../data/models/store_model.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _clientShellKey = GlobalKey<NavigatorState>();
@@ -60,15 +58,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/store/:storeId',
         builder: (context, state) {
-          final store = state.extra as StoreModel;
-          return StoreMenuScreen(store: store);
+          return StoreMenuScreen(storeId: state.pathParameters['storeId']!);
         },
       ),
       GoRoute(
         path: '/product/:productId',
         builder: (context, state) {
-          final product = state.extra as ProductModel;
-          return ProductDetailScreen(product: product);
+          return ProductDetailScreen(productId: state.pathParameters['productId']!);
         },
       ),
       GoRoute(path: '/cart', builder: (_, __) => const CartScreen()),

@@ -1,32 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../data/mock/mock_data.dart';
+import '../../../data/models/store_model.dart';
+import '../../../data/providers/catalog_providers.dart';
 
-class StoresScreen extends StatefulWidget {
+class StoresScreen extends ConsumerStatefulWidget {
   const StoresScreen({super.key});
 
   @override
-  State<StoresScreen> createState() => _StoresScreenState();
+  ConsumerState<StoresScreen> createState() => _StoresScreenState();
 }
 
-class _StoresScreenState extends State<StoresScreen> {
+class _StoresScreenState extends ConsumerState<StoresScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
-  List<StoreModel> get _filtered => mockStores
-      .where((s) => s.name.toLowerCase().contains(_query.toLowerCase()))
-      .toList();
-
   @override
   Widget build(BuildContext context) {
+    final storesAsync = ref.watch(canteensProvider);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Row(
@@ -49,14 +47,13 @@ class _StoresScreenState extends State<StoresScreen> {
               ),
             ),
 
-            // Search
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: TextField(
                 controller: _searchCtrl,
                 onChanged: (v) => setState(() => _query = v),
                 decoration: InputDecoration(
-                  hintText: 'Buscar por nome da lojinha...',
+                  hintText: 'Buscar por nome da cantina...',
                   prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
                   fillColor: AppColors.surface,
                   filled: true,
@@ -73,19 +70,18 @@ class _StoresScreenState extends State<StoresScreen> {
               ),
             ),
 
-            // Title + Ver tudo
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Lojas Próximas',
+                  const Text('Cantinas da instituição',
                       style: TextStyle(
                           fontSize: 17, fontWeight: FontWeight.w800,
                           color: AppColors.textDark)),
                   TextButton(
                     onPressed: () {},
-                    child: const Text('VER PARA',
+                    child: const Text('VER TODAS',
                         style: TextStyle(
                             color: AppColors.primary, fontSize: 12,
                             fontWeight: FontWeight.w700)),
@@ -94,16 +90,28 @@ class _StoresScreenState extends State<StoresScreen> {
               ),
             ),
 
-            // List
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
-                itemCount: _filtered.length,
-                itemBuilder: (_, i) => _StoreCard(
-                  store: _filtered[i],
-                  onTap: () =>
-                      context.push('/store/${_filtered[i].id}', extra: _filtered[i]),
-                ),
+              child: storesAsync.when(
+                data: (storesData) {
+                  final stores = storesData
+                      .where((store) => store.name.toLowerCase().contains(_query.toLowerCase()))
+                      .toList();
+
+                  if (stores.isEmpty) {
+                    return const Center(child: Text('Nenhuma cantina encontrada'));
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
+                    itemCount: stores.length,
+                    itemBuilder: (_, i) => _StoreCard(
+                      store: stores[i],
+                      onTap: () => context.push('/store/${stores[i].id}'),
+                    ),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, __) => const Center(child: Text('Erro ao carregar cantinas')),
               ),
             ),
           ],
@@ -152,7 +160,10 @@ class _StoreCard extends StatelessWidget {
                 color: AppColors.primary.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(Icons.store, color: AppColors.primary, size: 30),
+              clipBehavior: Clip.antiAlias,
+              child: store.logoUrl != null && store.logoUrl!.isNotEmpty
+                  ? Image.network(store.logoUrl!, fit: BoxFit.cover)
+                  : const Icon(Icons.store, color: AppColors.primary, size: 30),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -164,20 +175,9 @@ class _StoreCard extends StatelessWidget {
                           fontSize: 15, fontWeight: FontWeight.w700,
                           color: AppColors.textDark)),
                   const SizedBox(height: 2),
-                  Text('${store.distance} · ${store.address}',
+                  Text(store.address.isNotEmpty ? store.address : store.description,
                       style: const TextStyle(
                           fontSize: 12, color: AppColors.textLight)),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.star, color: AppColors.starYellow, size: 14),
-                      const SizedBox(width: 2),
-                      Text('${store.rating}',
-                          style: const TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w600,
-                              color: AppColors.textDark)),
-                    ],
-                  ),
                 ],
               ),
             ),

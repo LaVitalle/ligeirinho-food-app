@@ -14,16 +14,28 @@ class AdditionalModel {
     this.unit = 'Unitário',
     this.maxPerOrder = 5,
   });
+
+  factory AdditionalModel.fromJson(Map<String, dynamic> json) {
+    return AdditionalModel(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      price: double.tryParse(json['price']?.toString() ?? '') ?? 0,
+      isActive: json['isActive'] as bool? ?? true,
+    );
+  }
 }
 
 class ProductModel {
   final String id;
   final String storeId;
+  final String categoryId;
   final String name;
   final String description;
   final double price;
   final String? imageUrl;
   final bool isActive;
+  final bool isFeatured;
+  final DateTime? createdAt;
   final List<AdditionalModel> additionals;
   final List<String> removableIngredients;
   final String? badge;
@@ -31,13 +43,69 @@ class ProductModel {
   const ProductModel({
     required this.id,
     required this.storeId,
+    this.categoryId = '',
     required this.name,
     required this.description,
     required this.price,
     this.imageUrl,
     this.isActive = true,
+    this.isFeatured = false,
+    this.createdAt,
     this.additionals = const [],
     this.removableIngredients = const [],
     this.badge,
   });
+
+  ProductModel copyWith({
+    String? id,
+    String? storeId,
+    String? categoryId,
+    String? name,
+    String? description,
+    double? price,
+    String? imageUrl,
+    bool? isActive,
+    bool? isFeatured,
+    DateTime? createdAt,
+    List<AdditionalModel>? additionals,
+    List<String>? removableIngredients,
+    String? badge,
+  }) {
+    return ProductModel(
+      id: id ?? this.id,
+      storeId: storeId ?? this.storeId,
+      categoryId: categoryId ?? this.categoryId,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      price: price ?? this.price,
+      imageUrl: imageUrl ?? this.imageUrl,
+      isActive: isActive ?? this.isActive,
+      isFeatured: isFeatured ?? this.isFeatured,
+      createdAt: createdAt ?? this.createdAt,
+      additionals: additionals ?? this.additionals,
+      removableIngredients: removableIngredients ?? this.removableIngredients,
+      badge: badge ?? this.badge,
+    );
+  }
+
+  factory ProductModel.fromJson(
+    Map<String, dynamic> json, {
+    List<AdditionalModel> additionals = const [],
+    List<String> removableIngredients = const [],
+  }) {
+    return ProductModel(
+      id: json['id']?.toString() ?? '',
+      storeId: json['canteenId']?.toString() ?? json['storeId']?.toString() ?? '',
+      categoryId: json['categoryId']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      price: double.tryParse(json['price']?.toString() ?? '') ?? 0,
+      imageUrl: json['photoUrl']?.toString() ?? json['imageUrl']?.toString(),
+      isActive: json['isActive'] as bool? ?? true,
+      isFeatured: json['isFeatured'] as bool? ?? false,
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
+      additionals: additionals,
+      removableIngredients: removableIngredients,
+    );
+  }
 }
