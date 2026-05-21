@@ -1,21 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../data/providers/catalog_providers.dart';
 
-class CreateAdditionalScreen extends StatefulWidget {
+class CreateAdditionalScreen extends ConsumerStatefulWidget {
   const CreateAdditionalScreen({super.key});
 
   @override
-  State<CreateAdditionalScreen> createState() =>
+  ConsumerState<CreateAdditionalScreen> createState() =>
       _CreateAdditionalScreenState();
 }
 
-class _CreateAdditionalScreenState extends State<CreateAdditionalScreen> {
+class _CreateAdditionalScreenState extends ConsumerState<CreateAdditionalScreen> {
   final _nameCtrl = TextEditingController();
   final _priceCtrl = TextEditingController(text: '0,00');
   final _maxCtrl = TextEditingController(text: '5');
   String _unit = 'Unitário';
   int _qty = 1;
+  bool _isLoading = false;
+
+  void _saveAdditional() async {
+    if (_nameCtrl.text.isEmpty || _priceCtrl.text.isEmpty) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final priceStr = _priceCtrl.text.replaceAll('.', '').replaceAll(',', '.');
+      final price = double.tryParse(priceStr) ?? 0.0;
+      final maxVal = int.tryParse(_maxCtrl.text) ?? 5;
+
+      final myCanteen = await ref.read(myCanteenProvider.future);
+      final api = ref.read(catalogApiServiceProvider);
+
+      await api.createAdditional({
+        'canteenId': myCanteen.id,
+        'name': _nameCtrl.text.trim(),
+        'price': price,
+        // Since extra DTO might not accept maxQuantity right away depending on backend,
+        // we can pass it if supported, or just the required fields.
+        // Based on our previous check:
+        // class CreateExtraDto: name, price, canteenId. 
+      });
+
+      ref.invalidate(vendorAdditionalsProvider(myCanteen.id));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Adicional criado com sucesso!')),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,20 +194,23 @@ class _CreateAdditionalScreenState extends State<CreateAdditionalScreen> {
 
             SizedBox(
               width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                onPressed: () => context.pop(),
-                icon: const Icon(Icons.save, color: Colors.white, size: 18),
-                label: const Text('SALVAR ADICIONAL',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: Colors.white)),
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _saveAdditional,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
                 ),
+                child: _isLoading
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text('Salvar Adicional',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
               ),
             ),
             const SizedBox(height: 40),

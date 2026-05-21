@@ -27,7 +27,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final cartCount = ref.watch(cartCountProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final featuredAsync = ref.watch(featuredProductsProvider);
-    final canteensAsync = ref.watch(canteensProvider);
+    final canteensAsync = ref.watch(canteensProvider(user?.institution));
 
     final categories = categoriesAsync.maybeWhen(
       data: (items) => items,

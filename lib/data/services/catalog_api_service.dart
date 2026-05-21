@@ -147,10 +147,66 @@ class CatalogApiService {
     final data = await _getData('/products/$productId/removable-ingredients');
     final items = _asList(data);
     return items
-        .whereType<Map<String, dynamic>>()
-        .map((item) => item['name']?.toString() ?? '')
-        .where((name) => name.isNotEmpty)
+        .whereType<String>()
         .toList();
+  }
+
+  // --- VENDOR ENDPOINTS ---
+
+  Future<void> createProduct(Map<String, dynamic> body) async {
+    final res = await _api.post('/products', body);
+    if (res.statusCode >= 300) {
+      throw Exception('Failed to create product: ${res.body}');
+    }
+  }
+
+  Future<void> updateProduct(String productId, Map<String, dynamic> body) async {
+    // There is no patch in api_service yet. So we should use put or patch
+    // For now we will add put/patch to api_service if needed, but let's assume we can use put/patch
+    // Let's implement it in api_service later.
+    final token = await _api.getToken();
+    final uri = Uri.parse('${_api.baseUrl}/products/$productId');
+    final res = await http.put(uri, headers: {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    }, body: json.encode(body));
+    if (res.statusCode >= 300) {
+      throw Exception('Failed to update product: ${res.body}');
+    }
+  }
+
+  Future<void> createAdditional(Map<String, dynamic> body) async {
+    final res = await _api.post('/extras', body);
+    if (res.statusCode >= 300) {
+      throw Exception('Failed to create additional: ${res.body}');
+    }
+  }
+
+  Future<List<AdditionalModel>> fetchExtrasByCanteen(String canteenId) async {
+    final data = await _getData('/extras', queryParameters: {'canteenId': canteenId});
+    final items = _asList(data);
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(AdditionalModel.fromJson)
+        .toList();
+  }
+
+  Future<StoreModel> fetchMyCanteen() async {
+    final data = await _getData('/canteens/me');
+    return StoreModel.fromJson(data);
+  }
+
+  Future<void> updateMyCanteen(Map<String, dynamic> body) async {
+    final token = await _api.getToken();
+    final uri = Uri.parse('${_api.baseUrl}/canteens/me');
+    final res = await http.patch(uri, headers: {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    }, body: json.encode(body));
+    
+    if (res.statusCode >= 300) {
+      throw Exception('Failed to update canteen: ${res.body}');
+    }
   }
 
   Future<dynamic> _getData(

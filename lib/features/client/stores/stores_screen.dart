@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/store_model.dart';
 import '../../../data/providers/catalog_providers.dart';
+import '../../auth/auth_provider.dart';
 
 class StoresScreen extends ConsumerStatefulWidget {
   const StoresScreen({super.key});
@@ -18,7 +19,8 @@ class _StoresScreenState extends ConsumerState<StoresScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final storesAsync = ref.watch(canteensProvider);
+    final user = ref.watch(authProvider);
+    final storesAsync = ref.watch(canteensProvider(user?.institution));
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(

@@ -1,23 +1,78 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/mock/mock_data.dart';
+import '../../../data/providers/catalog_providers.dart';
 
-class CreateProductScreen extends StatefulWidget {
+class CreateProductScreen extends ConsumerStatefulWidget {
   const CreateProductScreen({super.key});
 
   @override
-  State<CreateProductScreen> createState() => _CreateProductScreenState();
+  ConsumerState<CreateProductScreen> createState() => _CreateProductScreenState();
 }
 
-class _CreateProductScreenState extends State<CreateProductScreen> {
+class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _priceCtrl = TextEditingController(text: '0,00');
   final Set<String> _selectedAdditionals = {};
+  bool _isLoading = false;
+
+  void _saveProduct() async {
+    if (_nameCtrl.text.isEmpty || _priceCtrl.text.isEmpty) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final priceStr = _priceCtrl.text.replaceAll('.', '').replaceAll(',', '.');
+      // The backend expects price to be a number string like "15.90" not a double
+      
+      // Need canteenId
+      final myCanteen = await ref.read(myCanteenProvider.future);
+
+      final api = ref.read(catalogApiServiceProvider);
+      
+      // Let's get the first category ID available or create a mock one for now
+      // since the backend requires categoryId as a UUID
+      final categories = await ref.read(categoriesProvider.future);
+      // Forçar o UUID da categoria 'Salgados' que acabamos de criar se a lista estiver vazia
+      final categoryId = categories.isNotEmpty ? categories.first.id : 'a21dd1b4-cef9-41b2-876f-4947ef0f177d';
+
+      await api.createProduct({
+        'canteenId': myCanteen.id,
+        'name': _nameCtrl.text.trim(),
+        'description': _descCtrl.text.trim(),
+        'price': priceStr, // Preço como string, como o backend exige
+        'categoryId': categoryId,
+      });
+
+      // Refresh products list
+      ref.invalidate(vendorProductsProvider(myCanteen.id));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Produto criado com sucesso!')),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final myCanteenAsync = ref.watch(myCanteenProvider);
+    final canteenId = myCanteenAsync.valueOrNull?.id;
+    final additionalsAsync = canteenId != null ? ref.watch(vendorAdditionalsProvider(canteenId)) : null;
+    final availableAdditionals = additionalsAsync?.valueOrNull ?? [];
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -122,7 +177,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                 runSpacing: 6,
                 children: _selectedAdditionals.map((id) {
                   final add =
-                      mockAdditionals.firstWhere((a) => a.id == id);
+                      availableAdditionals.firstWhere((a) => a.id == id);
                   return Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 6),
@@ -178,7 +233,7 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
             ),
             const SizedBox(height: 8),
 
-            ...mockAdditionals.take(3).map((add) {
+            ...availableAdditionals.take(3).map((add) {
               final selected = _selectedAdditionals.contains(add.id);
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
@@ -240,21 +295,25 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
             }),
 
             const SizedBox(height: 32),
+
+            // Botão salvar
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 50,
               child: ElevatedButton(
-                onPressed: () => context.pop(),
+                onPressed: _isLoading ? null : _saveProduct,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
                 ),
-                child: const Text('Salvar Produto',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: Colors.white)),
+                child: _isLoading 
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text('Salvar Produto',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(height: 40),

@@ -21,11 +21,8 @@ final featuredProductsProvider = FutureProvider<List<ProductModel>>((ref) async 
       );
 });
 
-final canteensProvider = FutureProvider<List<StoreModel>>((ref) async {
-  final user = ref.watch(authProvider);
-  return ref.read(catalogApiServiceProvider).fetchCanteens(
-        institutionId: user?.institution,
-      );
+final canteensProvider = FutureProvider.family<List<StoreModel>, String?>((ref, institutionId) {
+  return ref.read(catalogApiServiceProvider).fetchCanteens(institutionId: institutionId);
 });
 
 final canteenByIdProvider = FutureProvider.family<StoreModel?, String>((ref, id) async {
@@ -38,4 +35,17 @@ final productsByCanteenProvider = FutureProvider.family<List<ProductModel>, Stri
 
 final productDetailProvider = FutureProvider.family<ProductDetailData?, String>((ref, productId) async {
   return ref.read(catalogApiServiceProvider).fetchProductDetail(productId);
+});
+
+// --- VENDOR PROVIDERS ---
+final myCanteenProvider = FutureProvider<StoreModel>((ref) {
+  return ref.read(catalogApiServiceProvider).fetchMyCanteen();
+});
+
+final vendorProductsProvider = FutureProvider.family<List<ProductModel>, String>((ref, canteenId) {
+  return ref.read(catalogApiServiceProvider).fetchProductsByCanteen(canteenId: canteenId);
+});
+
+final vendorAdditionalsProvider = FutureProvider.family<List<AdditionalModel>, String>((ref, canteenId) {
+  return ref.read(catalogApiServiceProvider).fetchExtrasByCanteen(canteenId);
 });

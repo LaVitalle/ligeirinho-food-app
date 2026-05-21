@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../data/mock/mock_data.dart';
+import '../../../data/providers/catalog_providers.dart';
 
-class AdditionalsScreen extends StatelessWidget {
+class AdditionalsScreen extends ConsumerWidget {
   const AdditionalsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final myCanteenAsync = ref.watch(myCanteenProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -15,63 +18,82 @@ class AdditionalsScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios, size: 20),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Produtos'),
+        title: const Text('Adicionais'),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 80),
-        itemCount: mockAdditionals.length,
-        itemBuilder: (_, i) {
-          final a = mockAdditionals[i];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2))
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.add_circle,
-                      color: AppColors.primary, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(a.name,
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textDark)),
-                      Text('R\$ ${a.price.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ),
-                Switch(
-                  value: a.isActive,
-                  onChanged: (_) {},
-                  activeThumbColor: AppColors.primary,
-                ),
-              ],
-            ),
+      body: myCanteenAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Erro: $e')),
+        data: (canteen) {
+          final additionalsAsync = ref.watch(vendorAdditionalsProvider(canteen.id));
+          
+          return additionalsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text('Erro ao carregar: $e')),
+            data: (additionals) {
+              if (additionals.isEmpty) {
+                return const Center(child: Text('Nenhum adicional encontrado.'));
+              }
+              return ListView.builder(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 80),
+                itemCount: additionals.length,
+                itemBuilder: (_, i) {
+                  final a = additionals[i];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2))
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.add_circle,
+                              color: AppColors.primary, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(a.name,
+                                  style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textDark)),
+                              Text('R\$ ${a.price.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: a.isActive,
+                          onChanged: (_) {
+                            // TODO: Call API to update status
+                          },
+                          activeColor: AppColors.primary,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
           );
         },
       ),

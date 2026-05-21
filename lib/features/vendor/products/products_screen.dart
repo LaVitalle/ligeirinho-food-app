@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../data/mock/mock_data.dart';
+import '../../auth/auth_provider.dart';
+import '../../../data/models/product_model.dart';
+import '../../../data/providers/catalog_providers.dart';
 
 final _currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 
-class ProductsScreen extends StatefulWidget {
+class ProductsScreen extends ConsumerStatefulWidget {
   const ProductsScreen({super.key});
 
   @override
-  State<ProductsScreen> createState() => _ProductsScreenState();
+  ConsumerState<ProductsScreen> createState() => _ProductsScreenState();
 }
 
-class _ProductsScreenState extends State<ProductsScreen>
+class _ProductsScreenState extends ConsumerState<ProductsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
   final Map<String, bool> _active = {};
@@ -22,12 +25,6 @@ class _ProductsScreenState extends State<ProductsScreen>
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 2, vsync: this);
-    for (final p in mockProducts) {
-      _active[p.id] = p.isActive;
-    }
-    for (final a in mockAdditionals) {
-      _active['add_${a.id}'] = a.isActive;
-    }
   }
 
   @override
@@ -38,8 +35,10 @@ class _ProductsScreenState extends State<ProductsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final vendorProducts =
-        mockProducts.where((p) => p.storeId == 's2').toList();
+    final user = ref.watch(authProvider);
+    final canteenId = user?.institution ?? ''; // Note: User model has canteenId mapped or we need to fetch myCanteen. Let's use myCanteenProvider.
+
+    final myCanteenAsync = ref.watch(myCanteenProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -121,129 +120,219 @@ class _ProductsScreenState extends State<ProductsScreen>
             const SizedBox(height: 8),
 
             Expanded(
-              child: TabBarView(
-                controller: _tabCtrl,
-                children: [
-                  // Produtos tab
-                  Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-                        child: Row(
-                          children: [
-                            const Text('CARDÁPIO ATIVO',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textLight,
-                                    letterSpacing: 1)),
-                            const Spacer(),
-                            TextButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.add,
-                                  size: 16, color: AppColors.primary),
-                              label: const Text('Novo',
-                                  style: TextStyle(
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w700)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: ListView.builder(
-                          padding:
-                              const EdgeInsets.fromLTRB(20, 0, 20, 80),
-                          itemCount: vendorProducts.length,
-                          itemBuilder: (_, i) {
-                            final p = vendorProducts[i];
-                            return _ProductListItem(
-                              product: p,
-                              active: _active[p.id] ?? true,
-                              onToggle: (v) =>
-                                  setState(() => _active[p.id] = v),
-                              onTap: () =>
-                                  context.push('/vendor/create-product'),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+              child: myCanteenAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(child: Text('Erro: $e')),
+                data: (canteen) {
+                  final productsAsync = ref.watch(vendorProductsProvider(canteen.id));
+                  final additionalsAsync = ref.watch(vendorAdditionalsProvider(canteen.id));
 
-                  // Adicionais tab
-                  Column(
+                  return TabBarView(
+                    controller: _tabCtrl,
                     children: [
-                      Expanded(
-                        child: ListView.builder(
-                          padding:
-                              const EdgeInsets.fromLTRB(20, 8, 20, 80),
-                          itemCount: mockAdditionals.length,
-                          itemBuilder: (_, i) {
-                            final a = mockAdditionals[i];
-                            final key = 'add_${a.id}';
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                      color:
-                                          Colors.black.withOpacity(0.05),
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 2))
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 36,
-                                    height: 36,
+                      // Produtos tab
+                      Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                            child: Row(
+                              children: [
+                                const Text('CARDÁPIO ATIVO',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textLight,
+                                        letterSpacing: 1)),
+                                const Spacer(),
+                                TextButton.icon(
+                                  onPressed: () {},
+                                  icon: const Icon(Icons.add,
+                                      size: 16, color: AppColors.primary),
+                                  label: const Text('Novo',
+                                      style: TextStyle(
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.w700)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: productsAsync.when(
+                              loading: () => const Center(child: CircularProgressIndicator()),
+                              error: (e, _) => Center(child: Text('Erro: $e')),
+                              data: (vendorProducts) => ListView.separated(
+                                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                                itemCount: vendorProducts.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                itemBuilder: (context, i) {
+                                  final p = vendorProducts[i];
+                                  final isActive = _active[p.id] ?? p.isActive;
+
+                                  return Container(
+                                    padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                        color: AppColors.primary
-                                            .withOpacity(0.1),
-                                        borderRadius:
-                                            BorderRadius.circular(8)),
-                                    child: const Icon(Icons.add_circle,
-                                        color: AppColors.primary, size: 20),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      color: AppColors.surface,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Row(
                                       children: [
-                                        Text(a.name,
-                                            style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.textDark)),
-                                        Text(_currency.format(a.price),
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                color: AppColors.primary,
-                                                fontWeight:
-                                                    FontWeight.w600)),
+                                        Container(
+                                          width: 52,
+                                          height: 52,
+                                          decoration: BoxDecoration(
+                                            color: AppColors.surface,
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                          child: const Icon(Icons.fastfood,
+                                              color: AppColors.textLight, size: 28),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(p.name,
+                                                  style: const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: AppColors.textDark)),
+                                              Text(_currency.format(p.price),
+                                                  style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: AppColors.primary,
+                                                      fontWeight:
+                                                          FontWeight.w600)),
+                                              Container(
+                                                margin: const EdgeInsets.only(top: 4),
+                                                padding: const EdgeInsets.symmetric(
+                                                    horizontal: 8, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: isActive
+                                                      ? AppColors.open.withOpacity(0.12)
+                                                      : AppColors.closed.withOpacity(0.12),
+                                                  borderRadius: BorderRadius.circular(20),
+                                                ),
+                                                child: Text(
+                                                  isActive ? 'EM ESTOQUE' : 'INDISPONÍVEL',
+                                                  style: TextStyle(
+                                                      fontSize: 9,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: isActive
+                                                          ? AppColors.open : AppColors.closed),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Switch(
+                                          value: isActive,
+                                          onChanged: (val) {
+                                            setState(() => _active[p.id] = val);
+                                            // TODO: Call API to update status
+                                          },
+                                          activeColor: AppColors.primary,
+                                        ),
                                       ],
                                     ),
-                                  ),
-                                  Switch(
-                                    value: _active[key] ?? a.isActive,
-                                    onChanged: (v) =>
-                                        setState(() => _active[key] = v),
-                                    activeThumbColor: AppColors.primary,
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // Adicionais tab
+                      Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                            child: Row(
+                              children: [
+                                const Text('ADICIONAIS',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textLight,
+                                        letterSpacing: 1)),
+                                const Spacer(),
+                                TextButton.icon(
+                                  onPressed: () {},
+                                  icon: const Icon(Icons.add,
+                                      size: 16, color: AppColors.primary),
+                                  label: const Text('Novo',
+                                      style: TextStyle(
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.w700)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: additionalsAsync.when(
+                              loading: () => const Center(child: CircularProgressIndicator()),
+                              error: (e, _) => Center(child: Text('Erro ao carregar adicionais')),
+                              data: (vendorAdditionals) => ListView.separated(
+                                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                                itemCount: vendorAdditionals.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                itemBuilder: (context, i) {
+                                  final a = vendorAdditionals[i];
+                                  final idKey = 'add_${a.id}';
+                                  final isActive = _active[idKey] ?? a.isActive;
+
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surface,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 36,
+                                          height: 36,
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary
+                                                .withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: const Icon(Icons.add_circle,
+                                              color: AppColors.primary, size: 20),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            children: [
+                                              Switch(
+                                                value: isActive,
+                                                onChanged: (val) {
+                                                  setState(() => _active[idKey] = val);
+                                                  // TODO: Call API to update additional
+                                                },
+                                                activeColor: AppColors.primary,
+                                              ),
+                                              Text(isActive ? 'Ativo' : 'Inativo',
+                                                  style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: AppColors.primary,
+                                                      fontWeight: FontWeight.w600)),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           ],
