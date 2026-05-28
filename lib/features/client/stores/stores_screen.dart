@@ -20,7 +20,8 @@ class _StoresScreenState extends ConsumerState<StoresScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider);
-    final storesAsync = ref.watch(canteensProvider(user?.institution));
+    final institutionId = user?.institution ?? '';
+    final storesAsync = ref.watch(canteensProvider(institutionId.isNotEmpty ? institutionId : null));
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(

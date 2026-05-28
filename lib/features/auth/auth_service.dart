@@ -51,6 +51,33 @@ class AuthService {
     return userModel;
   }
 
+  Future<void> register({
+    required String fullName,
+    required String email,
+    required String password,
+    required String accessCode,
+    String? phoneNumber,
+  }) async {
+    final res = await _api.post('/auth/register', {
+      'fullName': fullName,
+      'email': email,
+      'password': password,
+      'accessCode': accessCode,
+      if (phoneNumber != null) 'phoneNumber': phoneNumber,
+    });
+
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      String message = 'Erro ao cadastrar';
+      try {
+        final body = json.decode(res.body);
+        if (body is Map && body['status'] != null && body['status']['message'] != null) {
+          message = body['status']['message'];
+        }
+      } catch (_) {}
+      throw Exception(message);
+    }
+  }
+
   UserRole _mapRole(String backendRole) {
     final r = backendRole.toLowerCase();
     if (r.contains('customer')) return UserRole.client;

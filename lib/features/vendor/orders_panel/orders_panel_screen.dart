@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../data/mock/mock_orders.dart';
+import '../../../data/models/order_model.dart';
+import '../../../data/providers/orders_provider.dart';
 
-class OrdersPanelScreen extends StatefulWidget {
+class OrdersPanelScreen extends ConsumerStatefulWidget {
   const OrdersPanelScreen({super.key});
 
   @override
-  State<OrdersPanelScreen> createState() => _OrdersPanelScreenState();
+  ConsumerState<OrdersPanelScreen> createState() => _OrdersPanelScreenState();
 }
 
-class _OrdersPanelScreenState extends State<OrdersPanelScreen>
+class _OrdersPanelScreenState extends ConsumerState<OrdersPanelScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
 
@@ -124,29 +126,45 @@ class _OrdersPanelScreenState extends State<OrdersPanelScreen>
             const SizedBox(height: 8),
 
             Expanded(
-              child: TabBarView(
-                controller: _tabCtrl,
-                children: [
-                  // Pendentes
-                  ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 80),
-                    itemCount: mockVendorOrders.length,
-                    itemBuilder: (_, i) => _VendorOrderCard(
-                      order: mockVendorOrders[i],
-                    ),
+              child: ref.watch(vendorOrdersProvider).when(
+                    data: (orders) {
+                      final pendentes = orders.where((o) => o['status'] == 'open').toList();
+                      final preparo = orders.where((o) => o['status'] == 'preparing').toList();
+                      final prontos = orders.where((o) => o['status'] == 'ready').toList();
+
+                      return TabBarView(
+                        controller: _tabCtrl,
+                        children: [
+                          // Pendentes
+                          pendentes.isEmpty
+                              ? const Center(child: Text('Nenhum pedido pendente'))
+                              : ListView.builder(
+                                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 80),
+                                  itemCount: pendentes.length,
+                                  itemBuilder: (_, i) => _VendorOrderCard(order: pendentes[i]),
+                                ),
+                          // Em Preparo
+                          preparo.isEmpty
+                              ? const Center(child: Text('Nenhum pedido em preparo'))
+                              : ListView.builder(
+                                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 80),
+                                  itemCount: preparo.length,
+                                  itemBuilder: (_, i) => _VendorOrderCard(order: preparo[i]),
+                                ),
+                          // Prontos
+                          prontos.isEmpty
+                              ? const Center(child: Text('Nenhum pedido pronto'))
+                              : ListView.builder(
+                                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 80),
+                                  itemCount: prontos.length,
+                                  itemBuilder: (_, i) => _VendorOrderCard(order: prontos[i]),
+                                ),
+                        ],
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Center(child: Text('Erro: $e')),
                   ),
-                  // Em Preparo
-                  const Center(
-                    child: Text('Nenhum pedido em preparo',
-                        style: TextStyle(color: AppColors.textLight)),
-                  ),
-                  // Prontos
-                  const Center(
-                    child: Text('Nenhum pedido pronto',
-                        style: TextStyle(color: AppColors.textLight)),
-                  ),
-                ],
-              ),
             ),
           ],
         ),
@@ -211,13 +229,16 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
-class _VendorOrderCard extends StatelessWidget {
-  final VendorOrderModel order;
+class _VendorOrderCard extends ConsumerWidget {
+  final Map<String, dynamic> order;
 
   const _VendorOrderCard({required this.order});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = order['status'] as String? ?? 'unknown';
+    final items = order['items'] as List<dynamic>? ?? [];
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
@@ -236,13 +257,13 @@ class _VendorOrderCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(order.customerName,
-                  style: const TextStyle(
+              const Text('Cliente',
+                  style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textDark)),
               const SizedBox(width: 8),
-              Text('Pedido ${order.id}',
+              Text('Pedido #${order['id'].toString().substring(0, 4)}',
                   style: const TextStyle(
                       fontSize: 12, color: AppColors.textLight)),
               const Spacer(),
@@ -252,8 +273,8 @@ class _VendorOrderCard extends StatelessWidget {
                   color: AppColors.primary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text('NOVO',
-                    style: TextStyle(
+                child: Text(status.toUpperCase(),
+                    style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: AppColors.primary)),
@@ -261,15 +282,15 @@ class _VendorOrderCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          ...order.items.map((item) => Text('• $item',
+          ...items.map((item) => Text('• ${item['quantity']}x ${item['productNameSnapshot']}',
               style: const TextStyle(fontSize: 13, color: AppColors.textMedium))),
           const SizedBox(height: 8),
           Row(
             children: [
               const Icon(Icons.access_time, size: 14, color: AppColors.primary),
               const SizedBox(width: 4),
-              Text('Aguardando há ${order.waitingMinutes} min',
-                  style: const TextStyle(
+              const Text('Aguardando',
+                  style: TextStyle(
                       fontSize: 12, color: AppColors.primary,
                       fontWeight: FontWeight.w600)),
             ],
@@ -281,13 +302,20 @@ class _VendorOrderCard extends StatelessWidget {
                 child: SizedBox(
                   height: 40,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      try {
+                        await ref.read(ordersApiProvider).advanceOrder(order['id']);
+                        ref.invalidate(vendorOrdersProvider);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text('Aceitar',
+                    child: const Text('Avançar Status',
                         style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
@@ -296,24 +324,6 @@ class _VendorOrderCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Expanded(
-                child: SizedBox(
-                  height: 40,
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.error),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: const Text('Recusar',
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.error)),
-                  ),
-                ),
-              ),
             ],
           ),
         ],

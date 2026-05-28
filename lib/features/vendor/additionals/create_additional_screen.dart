@@ -26,8 +26,6 @@ class _CreateAdditionalScreenState extends ConsumerState<CreateAdditionalScreen>
     setState(() => _isLoading = true);
     try {
       final priceStr = _priceCtrl.text.replaceAll('.', '').replaceAll(',', '.');
-      final price = double.tryParse(priceStr) ?? 0.0;
-      final maxVal = int.tryParse(_maxCtrl.text) ?? 5;
 
       final myCanteen = await ref.read(myCanteenProvider.future);
       final api = ref.read(catalogApiServiceProvider);
@@ -35,11 +33,7 @@ class _CreateAdditionalScreenState extends ConsumerState<CreateAdditionalScreen>
       await api.createAdditional({
         'canteenId': myCanteen.id,
         'name': _nameCtrl.text.trim(),
-        'price': price,
-        // Since extra DTO might not accept maxQuantity right away depending on backend,
-        // we can pass it if supported, or just the required fields.
-        // Based on our previous check:
-        // class CreateExtraDto: name, price, canteenId. 
+        'price': priceStr, // Sending as string because backend requires it
       });
 
       ref.invalidate(vendorAdditionalsProvider(myCanteen.id));

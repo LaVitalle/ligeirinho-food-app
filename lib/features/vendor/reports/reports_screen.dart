@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../data/providers/reports_provider.dart';
 
 final _currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 
-class ReportsScreen extends StatelessWidget {
+class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final revenueAsync = ref.watch(revenueProvider);
+    final ordersCountAsync = ref.watch(ordersCountProvider);
+    final revenueTrendAsync = ref.watch(revenueTrendProvider);
+    final topProductsAsync = ref.watch(topProductsProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -38,25 +45,35 @@ class ReportsScreen extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Cards de métricas
-              const Row(
+              Row(
                 children: [
                   Expanded(
-                    child: _MetricBig(
-                      icon: Icons.attach_money,
-                      label: 'RECEITA TOTAL',
-                      value: 'R\$ 12.450,00',
-                      change: '+12,5%',
-                      color: AppColors.primary,
+                    child: revenueAsync.when(
+                      data: (data) => _MetricBig(
+                        icon: Icons.attach_money,
+                        label: 'RECEITA TOTAL',
+                        value: _currency.format(data['current']),
+                        change: '${data['deltaPercent'] > 0 ? '+' : ''}${data['deltaPercent']}%',
+                        color: AppColors.primary,
+                        changeNegative: data['deltaPercent'] < 0,
+                      ),
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (e, _) => const Text('Erro'),
                     ),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: _MetricBig(
-                      icon: Icons.shopping_bag_outlined,
-                      label: 'TOTAL PEDIDOS',
-                      value: '342',
-                      change: '+8,2%',
-                      color: Color(0xFF2196F3),
+                    child: ordersCountAsync.when(
+                      data: (data) => _MetricBig(
+                        icon: Icons.shopping_bag_outlined,
+                        label: 'TOTAL PEDIDOS',
+                        value: '${data['current']}',
+                        change: '${data['deltaPercent'] > 0 ? '+' : ''}${data['deltaPercent']}%',
+                        color: const Color(0xFF2196F3),
+                        changeNegative: data['deltaPercent'] < 0,
+                      ),
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (e, _) => const Text('Erro'),
                     ),
                   ),
                 ],
@@ -196,20 +213,28 @@ class ReportsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
 
-              const _TopProduct(
-                name: 'Hambúrguer Gourmet',
-                info: '124 vendidos esta mês',
-                value: 'R\$ 4.340',
-                change: '+15%',
-                positive: true,
-              ),
-              const SizedBox(height: 10),
-              const _TopProduct(
-                name: 'Café Latte',
-                info: '86 vendidos esta mês',
-                value: 'R\$ 1.068',
-                change: '-4%',
-                positive: false,
+              topProductsAsync.when(
+                data: (products) {
+                  if (products.isEmpty) {
+                    return const Center(child: Text('Nenhum dado de vendas ainda'));
+                  }
+                  return Column(
+                    children: products.map((p) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _TopProduct(
+                          name: p['name'],
+                          info: '${p['quantity']} vendidos esta mês',
+                          value: _currency.format(p['revenue']),
+                          change: '',
+                          positive: true,
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => const Center(child: Text('Erro ao carregar produtos')),
               ),
             ],
           ),
@@ -225,6 +250,7 @@ class _MetricBig extends StatelessWidget {
   final String value;
   final String change;
   final Color color;
+  final bool changeNegative;
 
   const _MetricBig({
     required this.icon,
@@ -232,6 +258,7 @@ class _MetricBig extends StatelessWidget {
     required this.value,
     required this.change,
     required this.color,
+    this.changeNegative = false,
   });
 
   @override
@@ -264,12 +291,12 @@ class _MetricBig extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              const Icon(Icons.arrow_upward, size: 12, color: AppColors.open),
+              Icon(changeNegative ? Icons.arrow_downward : Icons.arrow_upward, size: 12, color: changeNegative ? AppColors.error : AppColors.open),
               Text(change,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.open)),
+                      color: changeNegative ? AppColors.error : AppColors.open)),
             ],
           ),
         ],

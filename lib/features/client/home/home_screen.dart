@@ -27,7 +27,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final cartCount = ref.watch(cartCountProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final featuredAsync = ref.watch(featuredProductsProvider);
-    final canteensAsync = ref.watch(canteensProvider(user?.institution));
+    // user?.institution was returning empty because the user model sets it from 'institutionId' which wasn't fully mapped sometimes. Let's ensure we use the actual institution ID.
+    // If the user's institution is null in the front-end, it will send empty strings.
+    final institutionId = user?.institution ?? '';
+    final canteensAsync = ref.watch(canteensProvider(institutionId.isNotEmpty ? institutionId : null));
 
     final categories = categoriesAsync.maybeWhen(
       data: (items) => items,

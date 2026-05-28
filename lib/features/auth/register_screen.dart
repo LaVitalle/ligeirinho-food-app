@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
-import '../../data/models/user_model.dart';
-import 'auth_provider.dart';
+import 'auth_service.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -20,18 +19,41 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _codeCtrl = TextEditingController();
   bool _obscure = true;
   bool _obscureConfirm = true;
+  bool _isLoading = false;
 
-  void _register() {
-    final user = UserModel(
-      id: 'u1',
-      name: _nameCtrl.text.isNotEmpty ? _nameCtrl.text : 'Usuário',
-      email: _emailCtrl.text.isNotEmpty ? _emailCtrl.text : 'usuario@email.com',
-      registration: _codeCtrl.text,
-      institution: 'Universidade Federal',
-      role: UserRole.client,
-    );
-    ref.read(authProvider.notifier).login(user);
-    context.go('/home');
+  void _register() async {
+    if (_nameCtrl.text.isEmpty || _emailCtrl.text.isEmpty || _passCtrl.text.isEmpty || _codeCtrl.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preencha todos os campos')));
+      return;
+    }
+    if (_passCtrl.text != _confirmCtrl.text) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('As senhas não conferem')));
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final authService = AuthService();
+      // Using an arbitrary phone number for now as the screen doesn't ask for it
+      await authService.register(
+        fullName: _nameCtrl.text.trim(),
+        email: _emailCtrl.text.trim(),
+        password: _passCtrl.text,
+        accessCode: _codeCtrl.text.trim(),
+        phoneNumber: '+5511999999999',
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cadastro realizado com sucesso! Faça seu login.')));
+        context.go('/login');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -140,19 +162,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     width: double.infinity,
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: _register,
+                      onPressed: _isLoading ? null : _register,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30)),
                         elevation: 4,
                       ),
-                      child: const Text('CADASTRAR',
-                          style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 15,
-                              letterSpacing: 1)),
+                      child: _isLoading
+                          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Text('CADASTRAR',
+                              style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                  letterSpacing: 1)),
                     ),
                   ),
                   const SizedBox(height: 16),
