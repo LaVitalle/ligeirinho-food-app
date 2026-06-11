@@ -39,7 +39,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           if (item.removedIngredients.isNotEmpty) {
             note = 'Remover: ${item.removedIngredients.join(', ')}';
           }
-          final extraIds = item.additionals.map((a) => a.additional.id).toList();
+          final extraIds =
+              item.additionals.map((a) => a.additional.id).toList();
 
           await ordersApi.addCartItem(
             productId: item.product.id,
@@ -58,7 +59,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -69,7 +71,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   color: AppColors.open.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check_circle, color: AppColors.open, size: 40),
+                child: const Icon(Icons.check_circle,
+                    color: AppColors.open, size: 40),
               ),
               const SizedBox(height: 16),
               const Text('Pedido enviado!',
@@ -87,7 +90,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 context.go('/orders');
               },
               child: const Text('Ver Pedidos',
-                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+                  style: TextStyle(
+                      color: AppColors.primary, fontWeight: FontWeight.w700)),
             ),
           ],
         ),
@@ -219,16 +223,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           height: 40,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 14),
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
                             itemCount: _timeSlots.length,
                             itemBuilder: (_, i) {
                               final t = _timeSlots[i];
-                              final active =
-                                  _selectedTime[timeKey] == t;
+                              final active = _selectedTime[timeKey] == t;
                               return GestureDetector(
-                                onTap: () => setState(
-                                    () => _selectedTime[timeKey] = t),
+                                onTap: () =>
+                                    setState(() => _selectedTime[timeKey] = t),
                                 child: Container(
                                   margin: const EdgeInsets.only(right: 8),
                                   padding: const EdgeInsets.symmetric(
@@ -270,8 +272,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           label: 'PIX',
                           icon: Icons.pix,
                           selected: _selectedPayment[payKey] == 'PIX',
-                          onTap: () => setState(
-                              () => _selectedPayment[payKey] = 'PIX'),
+                          onTap: () =>
+                              setState(() => _selectedPayment[payKey] = 'PIX'),
                         ),
                         _PaymentOption(
                           label: 'Cartão',
@@ -294,7 +296,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     children: [
                       const Text('Total do Pedido',
                           style: TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
                               color: AppColors.textDark)),
                       Text(_currency.format(total),
                           style: const TextStyle(
@@ -308,7 +311,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               ],
             ),
           ),
-
           Container(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
             decoration: BoxDecoration(
@@ -327,20 +329,23 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 onPressed: _isLoading ? null : _sendOrder,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 child: _isLoading
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2),
                       )
                     : const Text('ENVIAR PEDIDO →',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: Colors.white)),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            color: Colors.white)),
               ),
             ),
           ),
@@ -366,10 +371,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Total a pagar', style: TextStyle(color: AppColors.textMedium)),
+                    const Text('Total a pagar',
+                        style: TextStyle(color: AppColors.textMedium)),
                     Text(_currency.format(total),
                         style: const TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primary)),
                   ],
                 ),
               ),
@@ -377,16 +385,21 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 onPressed: _isLoading ? null : _sendOrder,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 child: _isLoading
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2),
                       )
-                    : const Text('Confirmar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    : const Text('Confirmar',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
@@ -421,7 +434,8 @@ class _PaymentOption extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
                 child: Text(label,
-                    style: const TextStyle(fontSize: 14, color: AppColors.textDark))),
+                    style: const TextStyle(
+                        fontSize: 14, color: AppColors.textDark))),
             Radio<bool>(
               value: true,
               groupValue: selected,

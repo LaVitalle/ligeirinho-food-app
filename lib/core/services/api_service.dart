@@ -4,12 +4,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
 class ApiService {
-  static const String _defaultBase = kIsWeb ? 'http://localhost:4000' : 'http://10.0.2.2:4000';
+  static const String _defaultBase =
+      kIsWeb ? 'http://localhost:4000' : 'http://10.0.2.2:4000';
   final String baseUrl;
   final http.Client _client;
 
   ApiService({String? baseUrl, http.Client? client})
-      : baseUrl = baseUrl ?? const String.fromEnvironment('API_BASE_URL', defaultValue: _defaultBase),
+      : baseUrl = baseUrl ??
+            const String.fromEnvironment('API_BASE_URL',
+                defaultValue: _defaultBase),
         _client = client ?? http.Client();
 
   Future<String?> getToken() async {

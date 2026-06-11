@@ -82,11 +82,13 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
                 if (orders.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Text('Nenhum pedido em aberto.', style: TextStyle(color: AppColors.textMedium)),
+                    child: Text('Nenhum pedido em aberto.',
+                        style: TextStyle(color: AppColors.textMedium)),
                   );
                 }
                 return Column(
-                  children: orders.map((o) => _OpenOrderCard(order: o)).toList(),
+                  children:
+                      orders.map((o) => _OpenOrderCard(order: o)).toList(),
                 );
               },
             ),
@@ -110,7 +112,8 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen>
                 error: (e, st) => Center(child: Text('Erro: $e')),
                 data: (orders) {
                   if (orders.isEmpty) {
-                    return const Center(child: Text('Nenhum pedido no histórico.'));
+                    return const Center(
+                        child: Text('Nenhum pedido no histórico.'));
                   }
                   return ListView.builder(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
@@ -186,7 +189,8 @@ class _OpenOrderCard extends StatelessWidget {
                   color: AppColors.background,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.storefront, color: AppColors.textMedium),
+                child:
+                    const Icon(Icons.storefront, color: AppColors.textMedium),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -196,13 +200,19 @@ class _OpenOrderCard extends StatelessWidget {
                     Text('Pedido #${order['id'].toString().substring(0, 6)}',
                         style: const TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
-                    Text(order['createdAt'] != null ? _dateFmt.format(DateTime.parse(order['createdAt'])) : '',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textMedium)),
+                    Text(
+                        order['createdAt'] != null
+                            ? _dateFmt
+                                .format(DateTime.parse(order['createdAt']))
+                            : '',
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textMedium)),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: _statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -225,7 +235,8 @@ class _OpenOrderCard extends StatelessWidget {
                 children: [
                   Text('${item['quantity']}x ',
                       style: const TextStyle(
-                          color: AppColors.primary, fontWeight: FontWeight.w700)),
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700)),
                   Expanded(
                     child: Text(item['productNameSnapshot'] ?? '',
                         style: const TextStyle(color: AppColors.textDark)),
@@ -238,8 +249,11 @@ class _OpenOrderCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Total:', style: TextStyle(color: AppColors.textMedium)),
-              Text(_currency.format(double.tryParse(order['total']?.toString() ?? '0')),
+              const Text('Total:',
+                  style: TextStyle(color: AppColors.textMedium)),
+              Text(
+                  _currency.format(
+                      double.tryParse(order['total']?.toString() ?? '0')),
                   style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -278,7 +292,9 @@ class _HistoryOrderCard extends StatelessWidget {
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(isCanceled ? Icons.cancel_outlined : Icons.check_circle_outline, color: color),
+            child: Icon(
+                isCanceled ? Icons.cancel_outlined : Icons.check_circle_outline,
+                color: color),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -288,14 +304,22 @@ class _HistoryOrderCard extends StatelessWidget {
                 Text('Pedido #${order['id'].toString().substring(0, 6)}',
                     style: const TextStyle(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
-                Text(order['createdAt'] != null ? _dateFmt.format(DateTime.parse(order['createdAt'])) : '',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textMedium)),
+                Text(
+                    order['createdAt'] != null
+                        ? _dateFmt.format(DateTime.parse(order['createdAt']))
+                        : '',
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textMedium)),
               ],
             ),
           ),
-          Text(_currency.format(double.tryParse(order['total']?.toString() ?? '0')),
+          Text(
+              _currency
+                  .format(double.tryParse(order['total']?.toString() ?? '0')),
               style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark)),
         ],
       ),
     );

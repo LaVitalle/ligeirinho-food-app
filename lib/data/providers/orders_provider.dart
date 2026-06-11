@@ -89,12 +89,14 @@ final ordersApiProvider = Provider<OrdersApiService>((ref) {
   return OrdersApiService(ApiService());
 });
 
-final vendorOrdersProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
+final vendorOrdersProvider =
+    FutureProvider.autoDispose<List<dynamic>>((ref) async {
   final api = ref.read(ordersApiProvider);
   return api.fetchVendorOrders();
 });
 
-final clientOrdersProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, status) async {
+final clientOrdersProvider = FutureProvider.family
+    .autoDispose<List<dynamic>, String>((ref, status) async {
   final api = ref.read(ordersApiProvider);
   return api.fetchClientOrders(status: status);
 });
