@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../data/mock/mock_orders.dart';
+import '../../../data/providers/orders_provider.dart';
 
 final _currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 final _dateFmt = DateFormat('dd/MM - HH:mm');
 
-class OrdersScreen extends StatefulWidget {
+class OrdersScreen extends ConsumerStatefulWidget {
   const OrdersScreen({super.key});
 
   @override
-  State<OrdersScreen> createState() => _OrdersScreenState();
+  ConsumerState<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-class _OrdersScreenState extends State<OrdersScreen>
+class _OrdersScreenState extends ConsumerState<OrdersScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
 
@@ -32,6 +33,9 @@ class _OrdersScreenState extends State<OrdersScreen>
 
   @override
   Widget build(BuildContext context) {
+    final openOrdersAsync = ref.watch(clientOrdersProvider('open'));
+    final historyOrdersAsync = ref.watch(clientOrdersProvider('history'));
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -71,7 +75,21 @@ class _OrdersScreenState extends State<OrdersScreen>
             ),
             const SizedBox(height: 12),
 
-            ...mockOpenOrders.map((order) => _OpenOrderCard(order: order)),
+            openOrdersAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => Center(child: Text('Erro: $e')),
+              data: (orders) {
+                if (orders.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Text('Nenhum pedido em aberto.', style: TextStyle(color: AppColors.textMedium)),
+                  );
+                }
+                return Column(
+                  children: orders.map((o) => _OpenOrderCard(order: o)).toList(),
+                );
+              },
+            ),
 
             const SizedBox(height: 20),
 
@@ -87,11 +105,19 @@ class _OrdersScreenState extends State<OrdersScreen>
             const SizedBox(height: 12),
 
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
-                itemCount: mockOrderHistory.length,
-                itemBuilder: (_, i) =>
-                    _HistoryOrderCard(order: mockOrderHistory[i]),
+              child: historyOrdersAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, st) => Center(child: Text('Erro: $e')),
+                data: (orders) {
+                  if (orders.isEmpty) {
+                    return const Center(child: Text('Nenhum pedido no histórico.'));
+                  }
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
+                    itemCount: orders.length,
+                    itemBuilder: (_, i) => _HistoryOrderCard(order: orders[i]),
+                  );
+                },
               ),
             ),
           ],
@@ -102,28 +128,34 @@ class _OrdersScreenState extends State<OrdersScreen>
 }
 
 class _OpenOrderCard extends StatelessWidget {
-  final OrderModel order;
+  final Map<String, dynamic> order;
   const _OpenOrderCard({required this.order});
 
   String get _statusLabel {
-    switch (order.status) {
-      case OrderStatus.pending:
+    final status = order['status'] ?? '';
+    switch (status) {
+      case 'AGUARDANDO':
+      case 'EM_PREPARO':
         return 'Em processo';
-      case OrderStatus.preparing:
-        return 'Aguardando no local';
+      case 'PRONTO':
+      case 'AGUARDANDO_RETIRADA':
+        return 'Aguardando retirada';
       default:
-        return 'Pronto';
+        return 'Processando';
     }
   }
 
   Color get _statusColor {
-    switch (order.status) {
-      case OrderStatus.pending:
+    final status = order['status'] ?? '';
+    switch (status) {
+      case 'AGUARDANDO':
         return AppColors.primary;
-      case OrderStatus.preparing:
+      case 'EM_PREPARO':
         return const Color(0xFF2196F3);
-      default:
+      case 'AGUARDANDO_RETIRADA':
         return AppColors.open;
+      default:
+        return AppColors.primary;
     }
   }
 
@@ -137,7 +169,7 @@ class _OpenOrderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 8,
               offset: const Offset(0, 2))
         ],
@@ -148,68 +180,71 @@ class _OpenOrderCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.store, color: AppColors.primary, size: 22),
+                child: const Icon(Icons.storefront, color: AppColors.textMedium),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(order.storeName,
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textDark)),
-                    Text('Pedido ${order.id}',
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.textLight)),
+                    Text('Pedido #${order['id'].toString().substring(0, 6)}',
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 4),
+                    Text(order['createdAt'] != null ? _dateFmt.format(DateTime.parse(order['createdAt'])) : '',
+                        style: const TextStyle(fontSize: 12, color: AppColors.textMedium)),
                   ],
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _statusColor.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(20),
+                  color: _statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(_statusLabel,
                     style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                         color: _statusColor)),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          ...order.items.map((item) => Text(
-                '${item.quantity}x ${item.productName}',
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textMedium),
-              )),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            height: 42,
-            child: ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.qr_code_scanner, size: 18, color: Colors.white),
-              label: const Text('JÁ RETIREI',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      color: Colors.white)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+          const SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          ...((order['items'] as List<dynamic>?) ?? []).map((item) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  Text('${item['quantity']}x ',
+                      style: const TextStyle(
+                          color: AppColors.primary, fontWeight: FontWeight.w700)),
+                  Expanded(
+                    child: Text(item['productNameSnapshot'] ?? '',
+                        style: const TextStyle(color: AppColors.textDark)),
+                  ),
+                ],
               ),
-            ),
+            );
+          }),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Total:', style: TextStyle(color: AppColors.textMedium)),
+              Text(_currency.format(double.tryParse(order['total']?.toString() ?? '0')),
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark)),
+            ],
           ),
         ],
       ),
@@ -218,23 +253,21 @@ class _OpenOrderCard extends StatelessWidget {
 }
 
 class _HistoryOrderCard extends StatelessWidget {
-  final OrderModel order;
+  final Map<String, dynamic> order;
   const _HistoryOrderCard({required this.order});
 
   @override
   Widget build(BuildContext context) {
+    final status = order['status'] ?? '';
+    final isCanceled = status == 'CANCELADO';
+    final color = isCanceled ? AppColors.error : AppColors.textMedium;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2))
-        ],
       ),
       child: Row(
         children: [
@@ -242,67 +275,27 @@ class _HistoryOrderCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(10),
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.store, color: AppColors.textLight, size: 26),
+            child: Icon(isCanceled ? Icons.cancel_outlined : Icons.check_circle_outline, color: color),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(order.storeName,
-                    style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textDark)),
-                Text(_dateFmt.format(order.createdAt),
-                    style: const TextStyle(
-                        fontSize: 11, color: AppColors.textLight)),
-                const SizedBox(height: 2),
-                Text(
-                    order.items
-                        .map((i) => '${i.quantity}x ${i.productName}')
-                        .join(', '),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textMedium)),
+                Text('Pedido #${order['id'].toString().substring(0, 6)}',
+                    style: const TextStyle(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                Text(order['createdAt'] != null ? _dateFmt.format(DateTime.parse(order['createdAt'])) : '',
+                    style: const TextStyle(fontSize: 12, color: AppColors.textMedium)),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(_currency.format(order.total),
-                  style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textDark)),
-              const SizedBox(height: 4),
-              if (order.rating != null)
-                Row(
-                  children: List.generate(
-                    5,
-                    (i) => Icon(
-                      i < order.rating!.round()
-                          ? Icons.star
-                          : Icons.star_border,
-                      color: AppColors.starYellow,
-                      size: 14,
-                    ),
-                  ),
-                )
-              else
-                const Text('Avaliar agora',
-                    style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600)),
-            ],
-          ),
+          Text(_currency.format(double.tryParse(order['total']?.toString() ?? '0')),
+              style: const TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
         ],
       ),
     );

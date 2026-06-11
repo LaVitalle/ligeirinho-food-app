@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../cart/cart_provider.dart';
+import '../../../data/providers/orders_provider.dart';
 
 final _currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 
@@ -19,46 +20,86 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final Map<String, String> _selectedPayment = {};
 
   final _timeSlots = ['12:30 - 13:00', '13:00 - 13:30', '13:30 - 14:00'];
+  bool _isLoading = false;
 
-  void _sendOrder() {
-    ref.read(cartProvider.notifier).clear();
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppColors.open.withOpacity(0.1),
-                shape: BoxShape.circle,
+  Future<void> _sendOrder() async {
+    final stores = ref.read(cartProvider);
+    if (stores.isEmpty) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final ordersApi = ref.read(ordersApiProvider);
+
+      for (final store in stores) {
+        await ordersApi.clearCart();
+
+        for (final item in store.items) {
+          String? note;
+          if (item.removedIngredients.isNotEmpty) {
+            note = 'Remover: ${item.removedIngredients.join(', ')}';
+          }
+          final extraIds = item.additionals.map((a) => a.additional.id).toList();
+
+          await ordersApi.addCartItem(
+            productId: item.product.id,
+            quantity: item.quantity,
+            note: note,
+            extraIds: extraIds,
+          );
+        }
+
+        await ordersApi.createOrder();
+      }
+
+      ref.read(cartProvider.notifier).clear();
+
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.open.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_circle, color: AppColors.open, size: 40),
               ),
-              child: const Icon(Icons.check_circle, color: AppColors.open, size: 40),
+              const SizedBox(height: 16),
+              const Text('Pedido enviado!',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 8),
+              const Text('Seu pedido foi recebido e está sendo preparado.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textMedium)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                context.go('/orders');
+              },
+              child: const Text('Ver Pedidos',
+                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
             ),
-            const SizedBox(height: 16),
-            const Text('Pedido enviado!',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            const Text('Seu pedido foi recebido e está sendo preparado.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textMedium)),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.go('/orders');
-            },
-            child: const Text('Ver Pedidos',
-                style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
-    );
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao enviar pedido: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -283,13 +324,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: _sendOrder,
+                onPressed: _isLoading ? null : _sendOrder,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('ENVIAR PEDIDO →',
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : const Text('ENVIAR PEDIDO →',
                     style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
@@ -298,6 +345,52 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Total a pagar', style: TextStyle(color: AppColors.textMedium)),
+                    Text(_currency.format(total),
+                        style: const TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                  ],
+                ),
+              ),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _sendOrder,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : const Text('Confirmar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
