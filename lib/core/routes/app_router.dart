@@ -36,12 +36,17 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/splash',
     routes: [
       GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
-      GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
+      GoRoute(
+          path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
-      GoRoute(path: '/forgot-password', builder: (_, __) => const ForgotPasswordScreen()),
-      GoRoute(path: '/verify-code', builder: (_, __) => const VerifyCodeScreen()),
-      GoRoute(path: '/new-password', builder: (_, __) => const NewPasswordScreen()),
+      GoRoute(
+          path: '/forgot-password',
+          builder: (_, __) => const ForgotPasswordScreen()),
+      GoRoute(
+          path: '/verify-code', builder: (_, __) => const VerifyCodeScreen()),
+      GoRoute(
+          path: '/new-password', builder: (_, __) => const NewPasswordScreen()),
 
       // Client shell with bottom nav
       ShellRoute(
@@ -64,7 +69,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/product/:productId',
         builder: (context, state) {
-          return ProductDetailScreen(productId: state.pathParameters['productId']!);
+          return ProductDetailScreen(
+              productId: state.pathParameters['productId']!);
         },
       ),
       GoRoute(path: '/cart', builder: (_, __) => const CartScreen()),

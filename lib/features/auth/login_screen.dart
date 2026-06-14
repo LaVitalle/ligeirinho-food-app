@@ -47,7 +47,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         // mas como isso é um App Flutter (mobile), vamos apenas exibir uma mensagem e não logar.
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Acesso de Cantinas/Vendedor deve ser feito pelo Portal Web.'),
+            content: Text(
+                'Acesso de Cantinas/Vendedor deve ser feito pelo Portal Web.'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -95,18 +96,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     width: 200,
                     height: 200,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(
-                        Icons.fastfood, size: 100, color: Colors.white),
+                    errorBuilder: (_, __, ___) => const Icon(Icons.fastfood,
+                        size: 100, color: Colors.white),
                   ),
                   const SizedBox(height: 8),
 
                   // Badge LIGEIRINHO FOOD
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 10),
                     decoration: BoxDecoration(
                       color: const Color(0xFF5C1A00),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFD4880A), width: 2.5),
+                      border: Border.all(
+                          color: const Color(0xFFD4880A), width: 2.5),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.4),
@@ -127,7 +130,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Container(width: 30, height: 1.5, color: const Color(0xFFD4880A)),
+                            Container(
+                                width: 30,
+                                height: 1.5,
+                                color: const Color(0xFFD4880A)),
                             const Padding(
                               padding: EdgeInsets.symmetric(horizontal: 8),
                               child: Text('FOOD',
@@ -137,7 +143,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       color: Color(0xFFFFD600),
                                       letterSpacing: 4)),
                             ),
-                            Container(width: 30, height: 1.5, color: const Color(0xFFD4880A)),
+                            Container(
+                                width: 30,
+                                height: 1.5,
+                                color: const Color(0xFFD4880A)),
                           ],
                         ),
                       ],
@@ -288,7 +297,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           prefixIcon: Icon(prefixIcon, color: Colors.white70),
           suffixIcon: suffixIcon,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           filled: false,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
