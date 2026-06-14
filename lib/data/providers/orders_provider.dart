@@ -86,6 +86,32 @@ class OrdersApiService {
     final data = body['data'] ?? [];
     return data as List<dynamic>;
   }
+
+  Future<void> pickupOrder(String orderId) async {
+    final res = await _api.patch('/orders/$orderId/pickup', {});
+    if (res.statusCode >= 300) {
+      throw Exception('Erro ao confirmar retirada');
+    }
+  }
+
+  Future<void> cancelOrder(String orderId, {String? reason}) async {
+    final res = await _api.patch('/orders/$orderId/cancel', {
+      if (reason != null && reason.isNotEmpty) 'reason': reason,
+    });
+    if (res.statusCode >= 300) {
+      throw Exception('Erro ao cancelar pedido');
+    }
+  }
+
+  Future<void> rateOrder(String orderId, int rating, {String? comment}) async {
+    final res = await _api.patch('/orders/$orderId/rating', {
+      'rating': rating,
+      if (comment != null && comment.isNotEmpty) 'comment': comment,
+    });
+    if (res.statusCode >= 300) {
+      throw Exception('Erro ao avaliar pedido');
+    }
+  }
 }
 
 final ordersApiProvider = Provider<OrdersApiService>((ref) {

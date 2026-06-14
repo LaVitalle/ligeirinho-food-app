@@ -85,6 +85,15 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>> getMe() async {
+    final res = await _api.get('/me');
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception(_extractMessage(res.body, 'Erro ao buscar perfil'));
+    }
+    final body = json.decode(res.body);
+    return (body['data'] ?? body) as Map<String, dynamic>;
+  }
+
   Future<void> updateProfile({
     String? name,
     String? phone,
@@ -116,6 +125,43 @@ class AuthService {
       } catch (_) {}
       throw Exception(message);
     }
+  }
+
+  Future<void> forgotPassword(String email) async {
+    final res = await _api.post('/auth/forgot-password', {'email': email});
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception(_extractMessage(res.body, 'Erro ao enviar código'));
+    }
+  }
+
+  Future<void> verifyCode(String email, String code) async {
+    final res = await _api.post('/auth/verify-code', {'email': email, 'code': code});
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception(_extractMessage(res.body, 'Código inválido'));
+    }
+  }
+
+  Future<void> resetPassword(String email, String code, String newPassword) async {
+    final res = await _api.post('/auth/reset-password', {
+      'email': email,
+      'code': code,
+      'newPassword': newPassword,
+    });
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception(_extractMessage(res.body, 'Erro ao redefinir senha'));
+    }
+  }
+
+  String _extractMessage(String body, String fallback) {
+    try {
+      final parsed = json.decode(body);
+      if (parsed is Map &&
+          parsed['status'] != null &&
+          parsed['status']['message'] != null) {
+        return parsed['status']['message'];
+      }
+    } catch (_) {}
+    return fallback;
   }
 
   UserRole _mapRole(String backendRole) {

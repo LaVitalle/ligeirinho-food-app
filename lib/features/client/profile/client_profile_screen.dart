@@ -27,6 +27,14 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
     _emailCtrl = TextEditingController(text: user?.email ?? '');
     _phoneCtrl = TextEditingController(text: user?.phoneNumber ?? '');
     _instCtrl = TextEditingController(text: user?.institution ?? '');
+    Future.microtask(() async {
+      await ref.read(authProvider.notifier).fetchMe();
+      if (mounted) {
+        final fresh = ref.read(authProvider);
+        _nameCtrl.text = fresh?.name ?? _nameCtrl.text;
+        _phoneCtrl.text = fresh?.phoneNumber ?? _phoneCtrl.text;
+      }
+    });
   }
 
   @override

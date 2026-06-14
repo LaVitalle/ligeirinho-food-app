@@ -1,19 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import 'password_recovery_provider.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _emailCtrl = TextEditingController();
+
+  Future<void> _submit() async {
+    final email = _emailCtrl.text.trim();
+    final emailValid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
+    if (!emailValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Insira um e-mail válido para prosseguir')),
+      );
+      return;
+    }
+    final ok = await ref.read(passwordRecoveryProvider.notifier).requestCode(email);
+    if (ok && mounted) context.push('/verify-code');
+  }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(passwordRecoveryProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -32,7 +49,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 24),
-            // Ícone
             Container(
               width: 80,
               height: 80,
@@ -44,8 +60,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
             const SizedBox(height: 24),
             const Text('Esqueceu sua senha?',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
-                    color: AppColors.textDark)),
+                style: TextStyle(
+                    fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark)),
             const SizedBox(height: 12),
             const Text(
               'Não se preocupe! Informe seu e-mail abaixo e enviaremos as instruções para criar uma nova.',
@@ -62,24 +78,38 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             TextFormField(
               controller: _emailCtrl,
               keyboardType: TextInputType.emailAddress,
+              enabled: !state.loading,
               decoration: const InputDecoration(
                 hintText: 'seuemail@mail.com',
                 prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
               ),
             ),
+            if (state.error != null) ...[
+              const SizedBox(height: 12),
+              Text(state.error!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red, fontSize: 13)),
+            ],
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: () => context.push('/verify-code'),
+                onPressed: state.loading ? null : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('ENVIAR LINK →',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15,
-                        color: Colors.white)),
+                child: state.loading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2.5, color: Colors.white),
+                      )
+                    : const Text('ENVIAR CÓDIGO →',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 15, color: Colors.white)),
               ),
             ),
             const SizedBox(height: 24),

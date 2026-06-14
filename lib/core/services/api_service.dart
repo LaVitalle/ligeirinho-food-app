@@ -47,4 +47,20 @@ class ApiService {
     final res = await _client.get(_uri(path), headers: _defaultHeaders(token));
     return res;
   }
+
+  Future<http.Response> patch(String path, Map<String, dynamic> body) async {
+    final token = await getToken();
+    final res = await _client.patch(
+      _uri(path),
+      headers: _defaultHeaders(token),
+      body: json.encode(body),
+    );
+    return res;
+  }
+
+  Future<http.Response> delete(String path) async {
+    final token = await getToken();
+    final res = await _client.delete(_uri(path), headers: _defaultHeaders(token));
+    return res;
+  }
 }

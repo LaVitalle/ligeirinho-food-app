@@ -1,22 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import 'password_recovery_provider.dart';
 
-class NewPasswordScreen extends StatefulWidget {
+class NewPasswordScreen extends ConsumerStatefulWidget {
   const NewPasswordScreen({super.key});
 
   @override
-  State<NewPasswordScreen> createState() => _NewPasswordScreenState();
+  ConsumerState<NewPasswordScreen> createState() => _NewPasswordScreenState();
 }
 
-class _NewPasswordScreenState extends State<NewPasswordScreen> {
+class _NewPasswordScreenState extends ConsumerState<NewPasswordScreen> {
   final _passCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
   bool _obscure = true;
   bool _obscureConfirm = true;
 
+  Future<void> _submit() async {
+    final password = _passCtrl.text;
+    final confirm = _confirmCtrl.text;
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('A senha deve ter pelo menos 6 caracteres')),
+      );
+      return;
+    }
+
+    if (password != confirm) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('As senhas não coincidem')),
+      );
+      return;
+    }
+
+    final ok = await ref.read(passwordRecoveryProvider.notifier).resetPassword(password);
+    if (ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Senha redefinida com sucesso!')),
+      );
+      context.go('/login');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(passwordRecoveryProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -35,7 +66,8 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
           children: [
             const SizedBox(height: 16),
             Container(
-              width: 80, height: 80,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 color: AppColors.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
@@ -44,8 +76,8 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             ),
             const SizedBox(height: 24),
             const Text('Nova Senha',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
-                    color: AppColors.textDark)),
+                style: TextStyle(
+                    fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark)),
             const SizedBox(height: 12),
             const Text(
               'Crie uma senha forte e segura para sua conta.',
@@ -62,6 +94,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             TextFormField(
               controller: _passCtrl,
               obscureText: _obscure,
+              enabled: !state.loading,
               decoration: InputDecoration(
                 hintText: '••••••••',
                 suffixIcon: GestureDetector(
@@ -81,6 +114,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             TextFormField(
               controller: _confirmCtrl,
               obscureText: _obscureConfirm,
+              enabled: !state.loading,
               decoration: InputDecoration(
                 hintText: '••••••••',
                 suffixIcon: GestureDetector(
@@ -90,19 +124,34 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                 ),
               ),
             ),
+            if (state.error != null) ...[
+              const SizedBox(height: 12),
+              Text(state.error!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red, fontSize: 13)),
+            ],
             const SizedBox(height: 40),
             SizedBox(
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: () => context.go('/login'),
+                onPressed: state.loading ? null : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('REDEFINIR SENHA →',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15,
-                        color: Colors.white)),
+                child: state.loading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2.5, color: Colors.white),
+                      )
+                    : const Text('REDEFINIR SENHA →',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            color: Colors.white)),
               ),
             ),
             const SizedBox(height: 24),

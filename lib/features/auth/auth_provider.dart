@@ -10,6 +10,18 @@ class AuthNotifier extends StateNotifier<UserModel?> {
   void login(UserModel user) => state = user;
   void logout() => state = null;
 
+  Future<void> fetchMe() async {
+    try {
+      final data = await _authService.getMe();
+      if (state == null) return;
+      state = state!.copyWith(
+        name: data['fullName'] ?? data['name'] ?? state!.name,
+        phoneNumber: data['phoneNumber'] ?? state!.phoneNumber,
+        avatarUrl: data['profilePhotoUrl'] ?? state!.avatarUrl,
+      );
+    } catch (_) {}
+  }
+
   Future<void> updateProfile(
       {String? name,
       String? phone,
