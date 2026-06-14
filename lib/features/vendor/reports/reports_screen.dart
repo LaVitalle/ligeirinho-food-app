@@ -81,116 +81,148 @@ class ReportsScreen extends ConsumerWidget {
               const SizedBox(height: 20),
 
               // Gráfico
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2))
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Tendência de Receita',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textDark)),
-                    const Text('Últimos 7 dias (Seg - Dom)',
-                        style: TextStyle(
-                            fontSize: 11, color: AppColors.textLight)),
-                    const SizedBox(height: 4),
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text('R\$ 1.890,00 hoje',
+              revenueTrendAsync.when(
+                data: (trendData) {
+                  if (trendData.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  // Extract dates and totals from backend response
+                  // Expected format: [{date: '2023-10-01', total: 100}, ...] (already sorted past to present)
+                  final spots = <FlSpot>[];
+                  final daysLabels = <String>[];
+                  double maxTotal = 0;
+                  double todayTotal = 0;
+
+                  for (int i = 0; i < trendData.length; i++) {
+                    final totalStr = trendData[i]['total']?.toString() ?? '0';
+                    final total = double.tryParse(totalStr) ?? 0;
+                    if (total > maxTotal) maxTotal = total;
+                    if (i == trendData.length - 1) todayTotal = total;
+
+                    spots.add(FlSpot(i.toDouble(), total));
+
+                    // Simple short day name or DD/MM
+                    final dateStr = trendData[i]['date']?.toString() ?? '';
+                    if (dateStr.isNotEmpty) {
+                      try {
+                        final dt = DateTime.parse(dateStr);
+                        final dayStr = DateFormat('E', 'pt_BR').format(dt).substring(0, 1).toUpperCase();
+                        daysLabels.add(dayStr);
+                      } catch (_) {
+                        daysLabels.add('');
+                      }
+                    } else {
+                      daysLabels.add('');
+                    }
+                  }
+
+                  // Add 20% margin to max Y axis
+                  final maxY = maxTotal > 0 ? maxTotal * 1.2 : 100.0;
+
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2))
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Tendência de Receita',
                             style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.primary)),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 160,
-                      child: LineChart(
-                        LineChartData(
-                          gridData: FlGridData(
-                            show: true,
-                            drawVerticalLine: false,
-                            getDrawingHorizontalLine: (value) => const FlLine(
-                              color: AppColors.divider,
-                              strokeWidth: 1,
+                                color: AppColors.textDark)),
+                        const Text('Últimos 7 dias',
+                            style: TextStyle(
+                                fontSize: 11, color: AppColors.textLight)),
+                        const SizedBox(height: 4),
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
                             ),
+                            child: Text('${_currency.format(todayTotal)} hoje',
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary)),
                           ),
-                          titlesData: FlTitlesData(
-                            leftTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
-                            rightTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
-                            topTitles: const AxisTitles(
-                                sideTitles: SideTitles(showTitles: false)),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  const days = [
-                                    'S', 'T', 'Q', 'Q', 'S', 'S', 'D'
-                                  ];
-                                  final i = value.toInt();
-                                  if (i < 0 || i >= days.length) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return Text(days[i],
-                                      style: const TextStyle(
-                                          fontSize: 11,
-                                          color: AppColors.textLight));
-                                },
-                              ),
-                            ),
-                          ),
-                          borderData: FlBorderData(show: false),
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: const [
-                                FlSpot(0, 800),
-                                FlSpot(1, 1200),
-                                FlSpot(2, 900),
-                                FlSpot(3, 1400),
-                                FlSpot(4, 1100),
-                                FlSpot(5, 1700),
-                                FlSpot(6, 1890),
-                              ],
-                              isCurved: true,
-                              color: AppColors.primary,
-                              barWidth: 3,
-                              dotData: const FlDotData(show: false),
-                              belowBarData: BarAreaData(
-                                show: true,
-                                color: AppColors.primary.withOpacity(0.1),
-                              ),
-                            ),
-                          ],
-                          minX: 0,
-                          maxX: 6,
-                          minY: 0,
-                          maxY: 2200,
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 160,
+                          child: LineChart(
+                            LineChartData(
+                              gridData: FlGridData(
+                                show: true,
+                                drawVerticalLine: false,
+                                getDrawingHorizontalLine: (value) => const FlLine(
+                                  color: AppColors.divider,
+                                  strokeWidth: 1,
+                                ),
+                              ),
+                              titlesData: FlTitlesData(
+                                leftTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                                rightTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                                topTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    getTitlesWidget: (value, meta) {
+                                      final i = value.toInt();
+                                      if (i < 0 || i >= daysLabels.length) {
+                                        return const SizedBox.shrink();
+                                      }
+                                      return Text(daysLabels[i],
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              color: AppColors.textLight));
+                                    },
+                                  ),
+                                ),
+                              ),
+                              borderData: FlBorderData(show: false),
+                              lineBarsData: [
+                                LineChartBarData(
+                                  spots: spots,
+                                  isCurved: true,
+                                  color: AppColors.primary,
+                                  barWidth: 3,
+                                  dotData: const FlDotData(show: false),
+                                  belowBarData: BarAreaData(
+                                    show: true,
+                                    color: AppColors.primary.withValues(alpha: 0.1),
+                                  ),
+                                ),
+                              ],
+                              minX: 0,
+                              maxX: spots.length > 0 ? (spots.length - 1).toDouble() : 6.0,
+                              minY: 0,
+                              maxY: maxY,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => const Center(child: Text('Erro ao carregar gráfico')),
               ),
 
               const SizedBox(height: 20),

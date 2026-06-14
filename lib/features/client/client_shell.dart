@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../client/cart/cart_provider.dart';
+import '../../data/providers/orders_provider.dart';
 
 class ClientShell extends ConsumerWidget {
   final Widget child;
@@ -20,6 +21,9 @@ class ClientShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Starts the order polling for notifications
+    ref.watch(orderPollingProvider);
+
     final cartCount = ref.watch(cartCountProvider);
     final index = _currentIndex(context);
 
