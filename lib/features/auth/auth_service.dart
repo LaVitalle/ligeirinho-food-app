@@ -46,6 +46,7 @@ class AuthService {
       institution: user['institutionId'] ?? user['institution'] ?? null,
       role: role,
       avatarUrl: user['profilePhotoUrl'] ?? null,
+      phoneNumber: user['phoneNumber'] ?? null,
     );
 
     return userModel;
@@ -72,6 +73,37 @@ class AuthService {
         final body = json.decode(res.body);
         if (body is Map && body['status'] != null && body['status']['message'] != null) {
           message = body['status']['message'];
+        }
+      } catch (_) {}
+      throw Exception(message);
+    }
+  }
+
+  Future<void> updateProfile({
+    String? name,
+    String? phone,
+  }) async {
+    final body = <String, dynamic>{};
+    if (name != null && name.isNotEmpty) body['fullName'] = name;
+    if (phone != null && phone.isNotEmpty) body['phoneNumber'] = phone;
+
+    final token = await _api.getToken();
+    final uri = Uri.parse('${_api.baseUrl}/me');
+    final res = await http.patch(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+      body: json.encode(body),
+    );
+
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      String message = 'Erro ao atualizar perfil';
+      try {
+        final resBody = json.decode(res.body);
+        if (resBody is Map && resBody['status'] != null && resBody['status']['message'] != null) {
+          message = resBody['status']['message'];
         }
       } catch (_) {}
       throw Exception(message);

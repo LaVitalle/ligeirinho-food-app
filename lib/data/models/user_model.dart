@@ -5,6 +5,7 @@ class UserModel {
   final String? registration;
   final String? institution;
   final String? avatarUrl;
+  final String? phoneNumber;
   final UserRole role;
 
   const UserModel({
@@ -14,6 +15,7 @@ class UserModel {
     this.registration,
     this.institution,
     this.avatarUrl,
+    this.phoneNumber,
     required this.role,
   });
 
@@ -23,6 +25,7 @@ class UserModel {
     String? registration,
     String? institution,
     String? avatarUrl,
+    String? phoneNumber,
   }) {
     return UserModel(
       id: id,
@@ -31,6 +34,7 @@ class UserModel {
       registration: registration ?? this.registration,
       institution: institution ?? this.institution,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       role: role,
     );
   }

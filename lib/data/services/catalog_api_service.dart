@@ -153,17 +153,19 @@ class CatalogApiService {
 
   // --- VENDOR ENDPOINTS ---
 
-  Future<void> createProduct(Map<String, dynamic> body) async {
+  Future<String> createProduct(Map<String, dynamic> body) async {
     final res = await _api.post('/products', body);
     if (res.statusCode >= 300) {
       throw Exception('Failed to create product: ${res.body}');
     }
+    final decoded = json.decode(res.body);
+    if (decoded is Map && decoded['data'] != null && decoded['data']['id'] != null) {
+      return decoded['data']['id'].toString();
+    }
+    return '';
   }
 
   Future<void> updateProduct(String productId, Map<String, dynamic> body) async {
-    // There is no patch in api_service yet. So we should use put or patch
-    // For now we will add put/patch to api_service if needed, but let's assume we can use put/patch
-    // Let's implement it in api_service later.
     final token = await _api.getToken();
     final uri = Uri.parse('${_api.baseUrl}/products/$productId');
     final res = await http.put(uri, headers: {
@@ -172,6 +174,24 @@ class CatalogApiService {
     }, body: json.encode(body));
     if (res.statusCode >= 300) {
       throw Exception('Failed to update product: ${res.body}');
+    }
+  }
+
+  Future<void> uploadProductPhoto(String productId, String imagePath) async {
+    final token = await _api.getToken();
+    final uri = Uri.parse('${_api.baseUrl}/products/$productId/photo');
+    final request = http.MultipartRequest('POST', uri);
+    
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    
+    request.files.add(await http.MultipartFile.fromPath('photo', imagePath));
+    
+    final res = await request.send();
+    if (res.statusCode >= 300) {
+      final resBody = await res.stream.bytesToString();
+      throw Exception('Failed to upload photo: $resBody');
     }
   }
 

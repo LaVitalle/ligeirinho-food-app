@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/mock/mock_data.dart';
 import '../../../data/providers/catalog_providers.dart';
@@ -17,7 +19,18 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
   final _descCtrl = TextEditingController();
   final _priceCtrl = TextEditingController(text: '0,00');
   final Set<String> _selectedAdditionals = {};
+  File? _selectedImage;
   bool _isLoading = false;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _selectedImage = File(picked.path);
+      });
+    }
+  }
 
   void _saveProduct() async {
     if (_nameCtrl.text.isEmpty || _priceCtrl.text.isEmpty) return;
@@ -38,13 +51,18 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       // Forçar o UUID da categoria 'Salgados' que acabamos de criar se a lista estiver vazia
       final categoryId = categories.isNotEmpty ? categories.first.id : 'a21dd1b4-cef9-41b2-876f-4947ef0f177d';
 
-      await api.createProduct({
+      final productId = await api.createProduct({
         'canteenId': myCanteen.id,
         'name': _nameCtrl.text.trim(),
         'description': _descCtrl.text.trim(),
         'price': priceStr, // Preço como string, como o backend exige
         'categoryId': categoryId,
       });
+
+      // Se houver imagem selecionada e o produto foi criado com sucesso
+      if (_selectedImage != null && productId.isNotEmpty) {
+        await api.uploadProductPhoto(productId, _selectedImage!.path);
+      }
 
       // Refresh products list
       ref.invalidate(vendorProductsProvider(myCanteen.id));
@@ -100,7 +118,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
           children: [
             // Foto
             GestureDetector(
-              onTap: () {},
+              onTap: _pickImage,
               child: Container(
                 width: double.infinity,
                 height: 160,
@@ -109,26 +127,34 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                       color: AppColors.inputBorder, style: BorderStyle.solid),
+                  image: _selectedImage != null
+                      ? DecorationImage(
+                          image: FileImage(_selectedImage!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child:
-                          const Icon(Icons.image, color: AppColors.primary, size: 28),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text('Toque para enviar foto do produto',
-                        style: TextStyle(
-                            fontSize: 13, color: AppColors.textMedium)),
-                  ],
-                ),
+                child: _selectedImage == null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child:
+                                const Icon(Icons.image, color: AppColors.primary, size: 28),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text('Toque para enviar foto do produto',
+                              style: TextStyle(
+                                  fontSize: 13, color: AppColors.textMedium)),
+                        ],
+                      )
+                    : null,
               ),
             ),
             const SizedBox(height: 20),

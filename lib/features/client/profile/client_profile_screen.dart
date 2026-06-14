@@ -15,8 +15,9 @@ class ClientProfileScreen extends ConsumerStatefulWidget {
 class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
   late TextEditingController _nameCtrl;
   late TextEditingController _emailCtrl;
-  late TextEditingController _regCtrl;
+  late TextEditingController _phoneCtrl;
   late TextEditingController _instCtrl;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -24,7 +25,7 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
     final user = ref.read(authProvider);
     _nameCtrl = TextEditingController(text: user?.name ?? '');
     _emailCtrl = TextEditingController(text: user?.email ?? '');
-    _regCtrl = TextEditingController(text: user?.registration ?? '');
+    _phoneCtrl = TextEditingController(text: user?.phoneNumber ?? '');
     _instCtrl = TextEditingController(text: user?.institution ?? '');
   }
 
@@ -32,24 +33,38 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
   void dispose() {
     _nameCtrl.dispose();
     _emailCtrl.dispose();
-    _regCtrl.dispose();
+    _phoneCtrl.dispose();
     _instCtrl.dispose();
     super.dispose();
   }
 
-  void _save() {
-    ref.read(authProvider.notifier).updateProfile(
-          name: _nameCtrl.text,
-          email: _emailCtrl.text,
-          registration: _regCtrl.text,
-          institution: _instCtrl.text,
+  Future<void> _save() async {
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(authProvider.notifier).updateProfile(
+            name: _nameCtrl.text,
+            phone: _phoneCtrl.text,
+          );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Perfil atualizado!'),
+            backgroundColor: AppColors.open,
+          ),
         );
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Perfil atualizado!'),
-        backgroundColor: AppColors.open,
-      ),
-    );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   void _logout() {
@@ -116,6 +131,7 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _emailCtrl,
+              enabled: false,
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.email_outlined,
@@ -124,12 +140,13 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
             ),
             const SizedBox(height: 16),
 
-            _label('Matrícula'),
+            _label('Telefone'),
             const SizedBox(height: 8),
             TextFormField(
-              controller: _regCtrl,
+              controller: _phoneCtrl,
+              keyboardType: TextInputType.phone,
               decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.badge_outlined,
+                prefixIcon: Icon(Icons.phone_outlined,
                     color: AppColors.textLight, size: 20),
               ),
             ),
@@ -139,6 +156,7 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _instCtrl,
+              enabled: false,
               decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.school_outlined,
                     color: AppColors.textLight, size: 20),
@@ -150,13 +168,15 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: _save,
+                onPressed: _isLoading ? null : _save,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('SALVAR ALTERAÇÕES',
+                child: _isLoading 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text('SALVAR ALTERAÇÕES',
                     style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
