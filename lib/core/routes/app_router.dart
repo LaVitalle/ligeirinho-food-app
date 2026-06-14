@@ -17,14 +17,14 @@ import '../../features/client/cart/cart_screen.dart';
 import '../../features/client/checkout/checkout_screen.dart';
 import '../../features/client/orders/orders_screen.dart';
 import '../../features/client/profile/client_profile_screen.dart';
-import '../../features/vendor/vendor_shell.dart';
-import '../../features/vendor/orders_panel/orders_panel_screen.dart';
-import '../../features/vendor/products/products_screen.dart';
-import '../../features/vendor/products/create_product_screen.dart';
-import '../../features/vendor/additionals/additionals_screen.dart';
-import '../../features/vendor/additionals/create_additional_screen.dart';
-import '../../features/vendor/reports/reports_screen.dart';
-import '../../features/vendor/profile/vendor_profile_screen.dart';
+// import '../../features/vendor/vendor_shell.dart';
+// import '../../features/vendor/orders_panel/orders_panel_screen.dart';
+// import '../../features/vendor/products/products_screen.dart';
+// import '../../features/vendor/products/create_product_screen.dart';
+// import '../../features/vendor/additionals/additionals_screen.dart';
+// import '../../features/vendor/additionals/create_additional_screen.dart';
+// import '../../features/vendor/reports/reports_screen.dart';
+// import '../../features/vendor/profile/vendor_profile_screen.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final _clientShellKey = GlobalKey<NavigatorState>();
@@ -74,21 +74,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const ClientProfileScreen(),
       ),
 
-      // Vendor shell
-      ShellRoute(
-        navigatorKey: _vendorShellKey,
-        builder: (context, state, child) => VendorShell(child: child),
-        routes: [
-          GoRoute(path: '/vendor/orders', builder: (_, __) => const OrdersPanelScreen()),
-          GoRoute(path: '/vendor/products', builder: (_, __) => const ProductsScreen()),
-          GoRoute(path: '/vendor/reports', builder: (_, __) => const ReportsScreen()),
-        ],
-      ),
+      // Vendor shell - REMOVIDO POIS O VENDOR AGORA USA O WEB ADMIN
+      // ShellRoute(
+      //   navigatorKey: _vendorShellKey,
+      //   builder: (context, state, child) => VendorShell(child: child),
+      //   routes: [
+      //     GoRoute(path: '/vendor/orders', builder: (_, __) => const OrdersPanelScreen()),
+      //     GoRoute(path: '/vendor/products', builder: (_, __) => const ProductsScreen()),
+      //     GoRoute(path: '/vendor/reports', builder: (_, __) => const ReportsScreen()),
+      //   ],
+      // ),
 
-      GoRoute(path: '/vendor/create-product', builder: (_, __) => const CreateProductScreen()),
-      GoRoute(path: '/vendor/additionals', builder: (_, __) => const AdditionalsScreen()),
-      GoRoute(path: '/vendor/create-additional', builder: (_, __) => const CreateAdditionalScreen()),
-      GoRoute(path: '/vendor/profile', builder: (_, __) => const VendorProfileScreen()),
+      // GoRoute(path: '/vendor/create-product', builder: (_, __) => const CreateProductScreen()),
+      // GoRoute(path: '/vendor/additionals', builder: (_, __) => const AdditionalsScreen()),
+      // GoRoute(path: '/vendor/create-additional', builder: (_, __) => const CreateAdditionalScreen()),
+      // GoRoute(path: '/vendor/profile', builder: (_, __) => const VendorProfileScreen()),
     ],
   );
 });

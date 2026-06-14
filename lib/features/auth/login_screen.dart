@@ -43,7 +43,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (user.role == UserRole.client) {
         context.go('/home');
       } else {
-        context.go('/vendor/orders');
+        // Se for um Vendedor, deve ser redirecionado para a plataforma Web Admin,
+        // mas como isso é um App Flutter (mobile), vamos apenas exibir uma mensagem e não logar.
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Acesso de Cantinas/Vendedor deve ser feito pelo Portal Web.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        ref.read(authProvider.notifier).logout(); // Cancela o login
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
