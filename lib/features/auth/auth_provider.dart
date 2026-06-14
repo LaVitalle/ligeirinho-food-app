@@ -4,15 +4,19 @@ import 'auth_service.dart';
 
 class AuthNotifier extends StateNotifier<UserModel?> {
   final AuthService _authService;
-  
+
   AuthNotifier(this._authService) : super(null);
 
   void login(UserModel user) => state = user;
   void logout() => state = null;
 
-  Future<void> updateProfile({String? name, String? phone, String? registration, String? institution}) async {
+  Future<void> updateProfile(
+      {String? name,
+      String? phone,
+      String? registration,
+      String? institution}) async {
     if (state == null) return;
-    
+
     // Call API to update profile
     await _authService.updateProfile(name: name, phone: phone);
 

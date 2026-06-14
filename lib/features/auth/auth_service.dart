@@ -11,13 +11,16 @@ class AuthService {
   AuthService([ApiService? api]) : _api = api ?? ApiService();
 
   Future<UserModel> login(String email, String password) async {
-    final res = await _api.post('/auth/login', {'email': email, 'password': password});
+    final res =
+        await _api.post('/auth/login', {'email': email, 'password': password});
 
     if (res.statusCode < 200 || res.statusCode >= 300) {
       String message = 'Erro ao autenticar';
       try {
         final body = json.decode(res.body);
-        if (body is Map && body['status'] != null && body['status']['message'] != null) {
+        if (body is Map &&
+            body['status'] != null &&
+            body['status']['message'] != null) {
           message = body['status']['message'];
         }
       } catch (_) {}
@@ -30,7 +33,8 @@ class AuthService {
     final token = data['accessToken'] as String?;
     final user = data['user'] as Map<String, dynamic>?;
 
-    if (token == null || user == null) throw Exception('Resposta de login inválida');
+    if (token == null || user == null)
+      throw Exception('Resposta de login inválida');
 
     await _api.setToken(token);
 
@@ -71,7 +75,9 @@ class AuthService {
       String message = 'Erro ao cadastrar';
       try {
         final body = json.decode(res.body);
-        if (body is Map && body['status'] != null && body['status']['message'] != null) {
+        if (body is Map &&
+            body['status'] != null &&
+            body['status']['message'] != null) {
           message = body['status']['message'];
         }
       } catch (_) {}
@@ -102,7 +108,9 @@ class AuthService {
       String message = 'Erro ao atualizar perfil';
       try {
         final resBody = json.decode(res.body);
-        if (resBody is Map && resBody['status'] != null && resBody['status']['message'] != null) {
+        if (resBody is Map &&
+            resBody['status'] != null &&
+            resBody['status']['message'] != null) {
           message = resBody['status']['message'];
         }
       } catch (_) {}

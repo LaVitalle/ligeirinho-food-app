@@ -100,7 +100,8 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
                 const CircleAvatar(
                   radius: 48,
                   backgroundColor: AppColors.surface,
-                  child: Icon(Icons.person, size: 52, color: AppColors.textLight),
+                  child:
+                      Icon(Icons.person, size: 52, color: AppColors.textLight),
                 ),
                 Container(
                   width: 30,
@@ -110,7 +111,8 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 2),
                   ),
-                  child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                  child: const Icon(Icons.camera_alt,
+                      size: 16, color: Colors.white),
                 ),
               ],
             ),
@@ -174,13 +176,17 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                child: _isLoading 
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
                     : const Text('SALVAR ALTERAÇÕES',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: Colors.white)),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            color: Colors.white)),
               ),
             ),
             const SizedBox(height: 16),

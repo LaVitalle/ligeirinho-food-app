@@ -11,7 +11,8 @@ class CreateProductScreen extends ConsumerStatefulWidget {
   const CreateProductScreen({super.key});
 
   @override
-  ConsumerState<CreateProductScreen> createState() => _CreateProductScreenState();
+  ConsumerState<CreateProductScreen> createState() =>
+      _CreateProductScreenState();
 }
 
 class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
@@ -39,17 +40,19 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
     try {
       final priceStr = _priceCtrl.text.replaceAll('.', '').replaceAll(',', '.');
       // The backend expects price to be a number string like "15.90" not a double
-      
+
       // Need canteenId
       final myCanteen = await ref.read(myCanteenProvider.future);
 
       final api = ref.read(catalogApiServiceProvider);
-      
+
       // Let's get the first category ID available or create a mock one for now
       // since the backend requires categoryId as a UUID
       final categories = await ref.read(categoriesProvider.future);
       // Forçar o UUID da categoria 'Salgados' que acabamos de criar se a lista estiver vazia
-      final categoryId = categories.isNotEmpty ? categories.first.id : 'a21dd1b4-cef9-41b2-876f-4947ef0f177d';
+      final categoryId = categories.isNotEmpty
+          ? categories.first.id
+          : 'a21dd1b4-cef9-41b2-876f-4947ef0f177d';
 
       final productId = await api.createProduct({
         'canteenId': myCanteen.id,
@@ -88,7 +91,9 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
   Widget build(BuildContext context) {
     final myCanteenAsync = ref.watch(myCanteenProvider);
     final canteenId = myCanteenAsync.valueOrNull?.id;
-    final additionalsAsync = canteenId != null ? ref.watch(vendorAdditionalsProvider(canteenId)) : null;
+    final additionalsAsync = canteenId != null
+        ? ref.watch(vendorAdditionalsProvider(canteenId))
+        : null;
     final availableAdditionals = additionalsAsync?.valueOrNull ?? [];
 
     return Scaffold(
@@ -145,8 +150,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                               color: AppColors.primary.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
-                            child:
-                                const Icon(Icons.image, color: AppColors.primary, size: 28),
+                            child: const Icon(Icons.image,
+                                color: AppColors.primary, size: 28),
                           ),
                           const SizedBox(height: 8),
                           const Text('Toque para enviar foto do produto',
@@ -163,7 +168,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _nameCtrl,
-              decoration: const InputDecoration(hintText: 'Ex. Hambúrguer Artesanal'),
+              decoration:
+                  const InputDecoration(hintText: 'Ex. Hambúrguer Artesanal'),
             ),
             const SizedBox(height: 16),
 
@@ -205,8 +211,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                   final add =
                       availableAdditionals.firstWhere((a) => a.id == id);
                   return Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -221,8 +227,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                                 fontWeight: FontWeight.w600)),
                         const SizedBox(width: 4),
                         GestureDetector(
-                          onTap: () => setState(
-                              () => _selectedAdditionals.remove(id)),
+                          onTap: () =>
+                              setState(() => _selectedAdditionals.remove(id)),
                           child: const Icon(Icons.close,
                               size: 14, color: AppColors.primary),
                         ),
@@ -242,7 +248,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             TextField(
               decoration: InputDecoration(
                 hintText: 'Buscar adicionais...',
-                prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
+                prefixIcon:
+                    const Icon(Icons.search, color: AppColors.textLight),
                 fillColor: AppColors.surface,
                 filled: true,
                 contentPadding:
@@ -263,8 +270,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
               final selected = _selectedAdditionals.contains(add.id);
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(10),
@@ -282,8 +289,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                                   color: AppColors.textDark)),
                           Text('+ R\$ ${add.price.toStringAsFixed(2)}',
                               style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textMedium)),
+                                  fontSize: 12, color: AppColors.textMedium)),
                         ],
                       ),
                     ),
@@ -336,10 +342,15 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                   ),
                   elevation: 0,
                 ),
-                child: _isLoading 
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
                     : const Text('Salvar Produto',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(height: 40),

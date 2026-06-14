@@ -72,7 +72,8 @@ class CatalogApiService {
     return null;
   }
 
-  Future<List<ProductModel>> fetchFeaturedProducts({String? institutionId, int limit = 10}) async {
+  Future<List<ProductModel>> fetchFeaturedProducts(
+      {String? institutionId, int limit = 10}) async {
     final query = <String, String>{'limit': limit.toString()};
     if (institutionId != null && institutionId.isNotEmpty) {
       query['institutionId'] = institutionId;
@@ -146,9 +147,7 @@ class CatalogApiService {
   Future<List<String>> fetchRemovableIngredients(String productId) async {
     final data = await _getData('/products/$productId/removable-ingredients');
     final items = _asList(data);
-    return items
-        .whereType<String>()
-        .toList();
+    return items.whereType<String>().toList();
   }
 
   // --- VENDOR ENDPOINTS ---
@@ -159,19 +158,24 @@ class CatalogApiService {
       throw Exception('Failed to create product: ${res.body}');
     }
     final decoded = json.decode(res.body);
-    if (decoded is Map && decoded['data'] != null && decoded['data']['id'] != null) {
+    if (decoded is Map &&
+        decoded['data'] != null &&
+        decoded['data']['id'] != null) {
       return decoded['data']['id'].toString();
     }
     return '';
   }
 
-  Future<void> updateProduct(String productId, Map<String, dynamic> body) async {
+  Future<void> updateProduct(
+      String productId, Map<String, dynamic> body) async {
     final token = await _api.getToken();
     final uri = Uri.parse('${_api.baseUrl}/products/$productId');
-    final res = await http.put(uri, headers: {
-      'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    }, body: json.encode(body));
+    final res = await http.put(uri,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: json.encode(body));
     if (res.statusCode >= 300) {
       throw Exception('Failed to update product: ${res.body}');
     }
@@ -181,13 +185,13 @@ class CatalogApiService {
     final token = await _api.getToken();
     final uri = Uri.parse('${_api.baseUrl}/products/$productId/photo');
     final request = http.MultipartRequest('POST', uri);
-    
+
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
     }
-    
+
     request.files.add(await http.MultipartFile.fromPath('photo', imagePath));
-    
+
     final res = await request.send();
     if (res.statusCode >= 300) {
       final resBody = await res.stream.bytesToString();
@@ -203,7 +207,8 @@ class CatalogApiService {
   }
 
   Future<List<AdditionalModel>> fetchExtrasByCanteen(String canteenId) async {
-    final data = await _getData('/extras', queryParameters: {'canteenId': canteenId});
+    final data =
+        await _getData('/extras', queryParameters: {'canteenId': canteenId});
     final items = _asList(data);
     return items
         .whereType<Map<String, dynamic>>()
@@ -219,11 +224,13 @@ class CatalogApiService {
   Future<void> updateMyCanteen(Map<String, dynamic> body) async {
     final token = await _api.getToken();
     final uri = Uri.parse('${_api.baseUrl}/canteens/me');
-    final res = await http.patch(uri, headers: {
-      'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    }, body: json.encode(body));
-    
+    final res = await http.patch(uri,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: json.encode(body));
+
     if (res.statusCode >= 300) {
       throw Exception('Failed to update canteen: ${res.body}');
     }
@@ -233,7 +240,8 @@ class CatalogApiService {
     String path, {
     Map<String, String>? queryParameters,
   }) async {
-    final uri = Uri.parse('${_api.baseUrl}$path').replace(queryParameters: queryParameters);
+    final uri = Uri.parse('${_api.baseUrl}$path')
+        .replace(queryParameters: queryParameters);
     final token = await _api.getToken();
     final response = await http.get(uri, headers: {
       'Content-Type': 'application/json',
