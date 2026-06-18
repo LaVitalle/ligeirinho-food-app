@@ -3,17 +3,36 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
+/// Cliente HTTP centralizado da aplicação.
+///
+/// Implementa o padrão de projeto **Singleton**: uma única instância é criada
+/// e compartilhada por todos os serviços (AuthService, CatalogApiService,
+/// OrdersApiService, ReportsApiService). Isso garante que o token JWT e o
+/// client HTTP sejam os mesmos em toda a aplicação, evitando inconsistências
+/// e desperdício de recursos.
 class ApiService {
   static const String _defaultBase =
       kIsWeb ? 'http://localhost:4000' : 'http://10.0.2.2:4000';
+
+  // ── Singleton ──────────────────────────────────────────────────────────
+  static final ApiService _instance = ApiService._internal();
+
+  /// Retorna a instância única do ApiService (padrão Singleton).
+  factory ApiService() => _instance;
+
+  ApiService._internal()
+      : baseUrl = const String.fromEnvironment('API_BASE_URL',
+            defaultValue: _defaultBase),
+        _client = http.Client();
+
+  /// Construtor alternativo para testes — permite injetar dependências.
+  ApiService.forTesting({String? baseUrl, http.Client? client})
+      : baseUrl = baseUrl ?? _defaultBase,
+        _client = client ?? http.Client();
+  // ────────────────────────────────────────────────────────────────────────
+
   final String baseUrl;
   final http.Client _client;
-
-  ApiService({String? baseUrl, http.Client? client})
-      : baseUrl = baseUrl ??
-            const String.fromEnvironment('API_BASE_URL',
-                defaultValue: _defaultBase),
-        _client = client ?? http.Client();
 
   Future<String?> getToken() async {
     final sp = await SharedPreferences.getInstance();

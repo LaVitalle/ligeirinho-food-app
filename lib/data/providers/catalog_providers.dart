@@ -37,6 +37,37 @@ final productDetailProvider = FutureProvider.family<ProductDetailData?, String>(
   return ref.read(catalogApiServiceProvider).fetchProductDetail(productId);
 });
 
+// --- HOME SCREEN VIEWMODELS ---
+final homeSearchQueryProvider = StateProvider<String>((ref) => '');
+final homeSelectedCategoryProvider = StateProvider<int>((ref) => 0);
+
+final homeFilteredProductsProvider = Provider<List<ProductModel>>((ref) {
+  final query = ref.watch(homeSearchQueryProvider).trim().toLowerCase();
+  final selectedIdx = ref.watch(homeSelectedCategoryProvider);
+  
+  final categories = ref.watch(categoriesProvider).maybeWhen(
+        data: (c) => c,
+        orElse: () => const <CategoryModel>[],
+      );
+      
+  final featured = ref.watch(featuredProductsProvider).maybeWhen(
+        data: (f) => f,
+        orElse: () => const <ProductModel>[],
+      );
+
+  final selectedCategoryId = selectedIdx == 0 || categories.isEmpty
+      ? null
+      : categories[selectedIdx - 1].id;
+
+  return featured.where((product) {
+    final matchesCategory = selectedCategoryId == null || product.categoryId == selectedCategoryId;
+    final matchesSearch = query.isEmpty ||
+        product.name.toLowerCase().contains(query) ||
+        product.description.toLowerCase().contains(query);
+    return matchesCategory && matchesSearch;
+  }).toList();
+});
+
 // --- VENDOR PROVIDERS ---
 final myCanteenProvider = FutureProvider<StoreModel>((ref) {
   return ref.read(catalogApiServiceProvider).fetchMyCanteen();

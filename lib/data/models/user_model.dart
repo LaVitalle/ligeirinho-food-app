@@ -38,6 +38,32 @@ class UserModel {
       role: role,
     );
   }
+
+  /// Serializa o usuário para JSON (persistência local).
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'email': email,
+        'registration': registration,
+        'institution': institution,
+        'avatarUrl': avatarUrl,
+        'phoneNumber': phoneNumber,
+        'role': role == UserRole.vendor ? 'vendor' : 'client',
+      };
+
+  /// Reconstrói o usuário a partir de JSON salvo localmente.
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      registration: json['registration']?.toString(),
+      institution: json['institution']?.toString(),
+      avatarUrl: json['avatarUrl']?.toString(),
+      phoneNumber: json['phoneNumber']?.toString(),
+      role: json['role'] == 'vendor' ? UserRole.vendor : UserRole.client,
+    );
+  }
 }
 
 enum UserRole { client, vendor }

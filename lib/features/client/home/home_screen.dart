@@ -19,7 +19,14 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _searchCtrl = TextEditingController();
-  int _selectedCategory = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl.addListener(() {
+      ref.read(homeSearchQueryProvider.notifier).state = _searchCtrl.text;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,19 +51,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       data: (items) => items,
       orElse: () => const <StoreModel>[],
     );
-    final searchQuery = _searchCtrl.text.trim().toLowerCase();
-    final selectedCategoryId = _selectedCategory == 0 || categories.isEmpty
-        ? null
-        : categories[_selectedCategory - 1].id;
-
-    final filteredFeatured = featured.where((product) {
-      final matchesCategory = selectedCategoryId == null || product.categoryId == selectedCategoryId;
-      final matchesSearch = searchQuery.isEmpty ||
-          product.name.toLowerCase().contains(searchQuery) ||
-          product.description.toLowerCase().contains(searchQuery);
-      return matchesCategory && matchesSearch;
-    }).toList();
-
+    final filteredFeatured = ref.watch(homeFilteredProductsProvider);
     final highlights = filteredFeatured.skip(2).take(5).toList();
 
     return Scaffold(
@@ -161,12 +156,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       const CategoryModel(id: 'all', name: 'Todos'),
                       ...items,
                     ];
-                    final safeIndex = _selectedCategory.clamp(0, chips.length - 1).toInt();
-                    if (safeIndex != _selectedCategory) {
+                    final currentIdx = ref.watch(homeSelectedCategoryProvider);
+                    final safeIndex = currentIdx.clamp(0, chips.length - 1).toInt();
+                    if (safeIndex != currentIdx) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) {
-                          setState(() => _selectedCategory = safeIndex);
-                        }
+                        ref.read(homeSelectedCategoryProvider.notifier).state = safeIndex;
                       });
                     }
 
@@ -178,7 +172,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         final cat = chips[i];
                         final active = safeIndex == i;
                         return GestureDetector(
-                          onTap: () => setState(() => _selectedCategory = i),
+                          onTap: () => ref.read(homeSelectedCategoryProvider.notifier).state = i,
                           child: Container(
                             margin: const EdgeInsets.only(right: 16),
                             child: Column(
@@ -244,13 +238,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 height: 220,
                 child: featuredAsync.when(
                   data: (items) {
-                    final products = items.where((product) {
-                      final matchesCategory = selectedCategoryId == null || product.categoryId == selectedCategoryId;
-                      final matchesSearch = searchQuery.isEmpty ||
-                          product.name.toLowerCase().contains(searchQuery) ||
-                          product.description.toLowerCase().contains(searchQuery);
-                      return matchesCategory && matchesSearch;
-                    }).toList();
+                    final products = ref.watch(homeFilteredProductsProvider);
 
                     if (products.isEmpty) {
                       return const Center(child: Text('Nenhum produto encontrado'));

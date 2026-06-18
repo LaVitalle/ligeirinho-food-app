@@ -1,20 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'auth_provider.dart';
+import '../../data/models/user_model.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) context.go('/onboarding');
-    });
+    _initializeApp();
+  }
+
+  /// Verifica se há sessão salva e decide para onde navegar.
+  Future<void> _initializeApp() async {
+    // Aguarda um mínimo de 1.5s para exibir a splash (branding)
+    final minDelay = Future.delayed(const Duration(milliseconds: 1500));
+
+    // Tenta restaurar a sessão em paralelo
+    final restored =
+        await ref.read(authProvider.notifier).tryRestoreSession();
+
+    // Garante que a splash fique visível por tempo mínimo
+    await minDelay;
+
+    if (!mounted) return;
+
+    if (restored) {
+      final user = ref.read(authProvider);
+      if (user != null && user.role == UserRole.client) {
+        context.go('/home');
+      } else {
+        // Sessão de vendedor no mobile — redireciona para login
+        context.go('/onboarding');
+      }
+    } else {
+      context.go('/onboarding');
+    }
   }
 
   @override
@@ -96,3 +124,4 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
+

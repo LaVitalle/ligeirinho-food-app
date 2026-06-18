@@ -75,9 +75,9 @@ class _ClientProfileScreenState extends ConsumerState<ClientProfileScreen> {
     }
   }
 
-  void _logout() {
-    ref.read(authProvider.notifier).logout();
-    context.go('/login');
+  Future<void> _logout() async {
+    await ref.read(authProvider.notifier).logout();
+    if (mounted) context.go('/login');
   }
 
   @override

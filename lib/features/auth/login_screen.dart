@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/user_model.dart';
 import 'auth_provider.dart';
-import 'auth_service.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -36,10 +35,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     setState(() => _loading = true);
-    final service = AuthService();
+    final service = ref.read(authServiceProvider);
     try {
       final user = await service.login(email, pass);
-      ref.read(authProvider.notifier).login(user);
+      await ref.read(authProvider.notifier).login(user);
       if (user.role == UserRole.client) {
         context.go('/home');
       } else {

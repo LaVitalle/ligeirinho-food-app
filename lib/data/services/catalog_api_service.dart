@@ -35,6 +35,22 @@ class ProductDetailData {
   }
 }
 
+/// Fachada de acesso ao catálogo — **padrão de projeto Facade**.
+///
+/// O backend é composto por microsserviços com dezenas de endpoints
+/// distribuídos (categorias, cantinas, produtos, adicionais, ingredientes
+/// removíveis, fotos etc.). Esta classe atua como uma **fachada** que
+/// simplifica esse acesso para o restante do app:
+///
+/// - As ViewModels (providers) chamam apenas métodos de alto nível como
+///   `fetchProductDetail()`, sem conhecer a estrutura interna de endpoints.
+/// - Internamente, a fachada orquestra múltiplas chamadas HTTP, trata os
+///   envelopes de resposta do backend (`{ data, status, pagination }`) e
+///   devolve objetos de domínio prontos para uso.
+///
+/// **Exemplo concreto**: `fetchProductDetail()` encapsula 4 chamadas
+/// separadas (produto, cantina, adicionais, ingredientes removíveis) em
+/// uma única interface coesa para a camada de apresentação.
 class CatalogApiService {
   final ApiService _api;
 

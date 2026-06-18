@@ -1,9 +1,43 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/models/cart_model.dart';
 import '../../../data/models/product_model.dart';
 
+/// Chave usada para persistência local do carrinho.
+const _kCartKey = 'saved_cart';
+
 class CartNotifier extends StateNotifier<List<CartStore>> {
-  CartNotifier() : super([]);
+  CartNotifier() : super([]) {
+    _loadFromStorage();
+  }
+
+  /// Carrega o carrinho salvo no SharedPreferences ao iniciar.
+  Future<void> _loadFromStorage() async {
+    try {
+      final sp = await SharedPreferences.getInstance();
+      final raw = sp.getString(_kCartKey);
+      if (raw == null || raw.isEmpty) return;
+
+      final decoded = json.decode(raw) as List<dynamic>;
+      state = decoded
+          .whereType<Map<String, dynamic>>()
+          .map(CartStore.fromJson)
+          .toList();
+    } catch (_) {
+      // JSON corrompido — ignora e inicia com carrinho vazio
+    }
+  }
+
+  /// Salva o estado atual do carrinho no SharedPreferences.
+  Future<void> _saveToStorage() async {
+    try {
+      final sp = await SharedPreferences.getInstance();
+      final encoded = json.encode(state.map((s) => s.toJson()).toList());
+      await sp.setString(_kCartKey, encoded);
+    } catch (_) {}
+  }
 
   void addItem(ProductModel product, String storeName, int qty,
       List<SelectedAdditional> additionals, List<String> removed) {
@@ -36,6 +70,7 @@ class CartNotifier extends StateNotifier<List<CartStore>> {
           CartStore(storeId: store.storeId, storeName: store.storeName, items: newItems);
       state = newStores;
     }
+    _saveToStorage();
   }
 
   void updateItemQty(String storeId, String productId, int qty) {
@@ -47,13 +82,18 @@ class CartNotifier extends StateNotifier<List<CartStore>> {
       }).where((item) => item.quantity > 0).toList();
       return CartStore(storeId: store.storeId, storeName: store.storeName, items: items);
     }).where((store) => store.items.isNotEmpty).toList();
+    _saveToStorage();
   }
 
   void removeStore(String storeId) {
     state = state.where((s) => s.storeId != storeId).toList();
+    _saveToStorage();
   }
 
-  void clear() => state = [];
+  void clear() {
+    state = [];
+    _saveToStorage();
+  }
 
   double get total => state.fold(0.0, (sum, s) => sum + s.subtotal);
 

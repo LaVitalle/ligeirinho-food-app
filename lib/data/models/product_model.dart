@@ -23,6 +23,14 @@ class AdditionalModel {
       isActive: json['isActive'] as bool? ?? true,
     );
   }
+
+  /// Serializa para JSON (persistência local do carrinho).
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'price': price,
+        'isActive': isActive,
+      };
 }
 
 class ProductModel {
@@ -93,6 +101,21 @@ class ProductModel {
     List<AdditionalModel> additionals = const [],
     List<String> removableIngredients = const [],
   }) {
+    // Suporte a adicionais embutidos no JSON (persistência local)
+    final localAdditionals = additionals.isNotEmpty
+        ? additionals
+        : (json['additionals'] as List<dynamic>?)
+                ?.whereType<Map<String, dynamic>>()
+                .map(AdditionalModel.fromJson)
+                .toList() ??
+            const [];
+    final localRemovable = removableIngredients.isNotEmpty
+        ? removableIngredients
+        : (json['removableIngredients'] as List<dynamic>?)
+                ?.whereType<String>()
+                .toList() ??
+            const [];
+
     return ProductModel(
       id: json['id']?.toString() ?? '',
       storeId: json['canteenId']?.toString() ?? json['storeId']?.toString() ?? '',
@@ -104,8 +127,24 @@ class ProductModel {
       isActive: json['isActive'] as bool? ?? true,
       isFeatured: json['isFeatured'] as bool? ?? false,
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
-      additionals: additionals,
-      removableIngredients: removableIngredients,
+      additionals: localAdditionals,
+      removableIngredients: localRemovable,
     );
   }
+
+  /// Serializa para JSON (persistência local do carrinho).
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'storeId': storeId,
+        'categoryId': categoryId,
+        'name': name,
+        'description': description,
+        'price': price,
+        'imageUrl': imageUrl,
+        'isActive': isActive,
+        'isFeatured': isFeatured,
+        'badge': badge,
+        'additionals': additionals.map((a) => a.toJson()).toList(),
+        'removableIngredients': removableIngredients,
+      };
 }
